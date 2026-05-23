@@ -48,17 +48,18 @@
       min-height: 60px;
     }
 
-    #bigFlag {
-      font-size: 80px;
-      margin-top: 20px;
+    /* 🏳️ MAIN FLAG DISPLAY */
+    #mainFlag {
+      font-size: 90px;
+      margin: 15px 0;
       opacity: 0;
-      transform: translateY(20px) scale(0.8);
-      transition: all 0.6s ease;
+      transform: scale(0.7);
+      transition: all 0.5s ease;
     }
 
-    #bigFlag.show {
+    #mainFlag.show {
       opacity: 1;
-      transform: translateY(0) scale(1);
+      transform: scale(1);
     }
 
     .right {
@@ -79,7 +80,7 @@
       margin-top: 10px;
     }
 
-    /* 📊 PROGRESS (hidden until login) */
+    /* 📊 PROGRESS */
     #progressWrapper {
       margin-top: 12px;
       width: 100%;
@@ -115,6 +116,9 @@
 
       <h1>⚽ T&I World Cup 2026 Sweepstake</h1>
 
+      <!-- 🏳️ MAIN FLAG -->
+      <div id="mainFlag">🏳️</div>
+
       <input type="password" id="adminPass" placeholder="Admin password">
       <button onclick="unlockAdmin()">Unlock</button>
 
@@ -131,7 +135,6 @@
       <div id="progressText">0% complete</div>
 
       <div id="result" class="result"></div>
-      <div id="bigFlag"></div>
 
     </div>
   </div>
@@ -177,17 +180,15 @@ let completed = 0;
 
 const ADMIN_PASSWORD = 'TTWCSweep2026-!"£';
 
-/* 🔐 ADMIN LOGIN */
+/* 🔐 ADMIN */
 function unlockAdmin(){
   const input = document.getElementById("adminPass").value;
 
   if(input === ADMIN_PASSWORD){
-
     document.getElementById("adminPass").style.display = "none";
     document.querySelector("button[onclick='unlockAdmin()']").style.display = "none";
     document.getElementById("adminPanel").style.display = "block";
 
-    // ✅ SHOW PROGRESS ONLY AFTER LOGIN
     document.getElementById("progressWrapper").style.display = "block";
     document.getElementById("progressText").style.display = "block";
 
@@ -212,14 +213,14 @@ function updateProgress(){
     percent + "% complete (" + completed + "/" + totalPeople + ")";
 }
 
-/* 🔊 AUDIO SYSTEM (UNCHANGED - WORKING) */
+/* 🔊 AUDIO SYSTEM */
 function initAudio(){
   ctx = new (window.AudioContext || window.webkitAudioContext)();
 }
 
 function tone(freq, duration=250, volume=0.12){
   const o = ctx.createOscillator();
-  const g = ctx.createGain();
+  const g = o.context.createGain();
 
   o.type = "sine";
 
@@ -233,25 +234,21 @@ function tone(freq, duration=250, volume=0.12){
   setTimeout(()=>o.stop(), duration);
 }
 
-/* 🟡 MID */
 function playDing(){
   tone(660, 180, 0.10);
 }
 
-/* 🟢 ELITE */
 function playCheer(){
   tone(520, 220, 0.12);
   setTimeout(()=>tone(780, 220, 0.12), 120);
   setTimeout(()=>tone(1040, 300, 0.14), 240);
 }
 
-/* 🔴 LOW */
 function playAww(){
   tone(420, 220, 0.12);
   setTimeout(()=>tone(260, 260, 0.10), 140);
 }
 
-/* 🎺 DRUMROLL */
 function drumroll(){
   tone(110, 120);
   setTimeout(()=>tone(130,120),140);
@@ -299,11 +296,7 @@ function startDraw(){
     }
 
     const person = people[i];
-
-    const team = teams.splice(
-      Math.floor(Math.random() * teams.length),
-      1
-    )[0];
+    const team = teams.splice(Math.floor(Math.random() * teams.length), 1)[0];
 
     drumroll();
 
@@ -315,6 +308,15 @@ function startDraw(){
 
       document.getElementById("result").innerText =
         person.name + " → " + flag + " " + team;
+
+      /* 🏳️ MAIN FLAG UPDATE */
+      const mainFlag = document.getElementById("mainFlag");
+      mainFlag.innerText = flag;
+      mainFlag.classList.add("show");
+
+      setTimeout(() => {
+        mainFlag.classList.remove("show");
+      }, 1200);
 
       const div = document.createElement("div");
       div.className = "card";

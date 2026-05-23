@@ -27,8 +27,6 @@
   ],
 
   "teams": [
-
-    /* 🟢 ELITE */
     { "name": "Argentina", "tier": "elite" },
     { "name": "Brazil", "tier": "elite" },
     { "name": "England", "tier": "elite" },
@@ -38,7 +36,6 @@
     { "name": "Portugal", "tier": "elite" },
     { "name": "Netherlands", "tier": "elite" },
 
-    /* 🟡 STRONG / HIGH MID */
     { "name": "Belgium", "tier": "mid" },
     { "name": "Croatia", "tier": "mid" },
     { "name": "Uruguay", "tier": "mid" },
@@ -50,26 +47,10 @@
     { "name": "Turkey", "tier": "mid" },
     { "name": "Poland", "tier": "mid" },
 
-    /* 🌍 CONCACAF */
     { "name": "USA", "tier": "mid" },
     { "name": "Mexico", "tier": "mid" },
     { "name": "Canada", "tier": "mid" },
-    { "name": "Panama", "tier": "low" },
-    { "name": "Haiti", "tier": "low" },
-    { "name": "Curaçao", "tier": "low" },
-    { "name": "Costa Rica", "tier": "mid" },
-    { "name": "Honduras", "tier": "mid" },
 
-    /* 🌎 CONMEBOL */
-    { "name": "Colombia", "tier": "mid" },
-    { "name": "Ecuador", "tier": "mid" },
-    { "name": "Chile", "tier": "mid" },
-    { "name": "Peru", "tier": "mid" },
-    { "name": "Paraguay", "tier": "mid" },
-    { "name": "Uruguay", "tier": "mid" },
-    { "name": "Bolivia", "tier": "low" },
-
-    /* 🌍 AFRICA */
     { "name": "Morocco", "tier": "mid" },
     { "name": "Senegal", "tier": "mid" },
     { "name": "Nigeria", "tier": "mid" },
@@ -77,21 +58,31 @@
     { "name": "Ghana", "tier": "mid" },
     { "name": "Cameroon", "tier": "mid" },
     { "name": "Algeria", "tier": "mid" },
-    { "name": "Tunisia", "tier": "low" },
-    { "name": "Cape Verde", "tier": "low" },
-    { "name": "DR Congo", "tier": "low" },
+    { "name": "Ivory Coast", "tier": "mid" },
 
-    /* 🌏 ASIA */
     { "name": "Japan", "tier": "mid" },
     { "name": "South Korea", "tier": "mid" },
     { "name": "Iran", "tier": "mid" },
     { "name": "Saudi Arabia", "tier": "mid" },
     { "name": "Qatar", "tier": "mid" },
-    { "name": "Iraq", "tier": "low" },
-    { "name": "Uzbekistan", "tier": "low" },
     { "name": "Australia", "tier": "mid" },
+    { "name": "Uzbekistan", "tier": "low" },
+    { "name": "Iraq", "tier": "low" },
+    { "name": "Jordan", "tier": "mid" },
 
-    /* 🌏 OCEANIA */
+    { "name": "Panama", "tier": "low" },
+    { "name": "Haiti", "tier": "low" },
+    { "name": "Curaçao", "tier": "low" },
+    { "name": "Honduras", "tier": "mid" },
+    { "name": "Costa Rica", "tier": "mid" },
+    { "name": "Jamaica", "tier": "mid" },
+    { "name": "El Salvador", "tier": "mid" },
+
+    { "name": "Cape Verde", "tier": "low" },
+    { "name": "DR Congo", "tier": "low" },
+    { "name": "Tunisia", "tier": "low" },
+    { "name": "South Africa", "tier": "mid" },
+
     { "name": "New Zealand", "tier": "mid" }
   ]
 }

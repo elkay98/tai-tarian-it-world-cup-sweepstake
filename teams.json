@@ -59,6 +59,7 @@
     { "name": "Cameroon", "tier": "mid" },
     { "name": "Algeria", "tier": "mid" },
     { "name": "Ivory Coast", "tier": "mid" },
+    { "name": "South Africa", "tier": "mid" },
 
     { "name": "Japan", "tier": "mid" },
     { "name": "South Korea", "tier": "mid" },
@@ -66,22 +67,21 @@
     { "name": "Saudi Arabia", "tier": "mid" },
     { "name": "Qatar", "tier": "mid" },
     { "name": "Australia", "tier": "mid" },
+    { "name": "Jordan", "tier": "mid" },
     { "name": "Uzbekistan", "tier": "low" },
     { "name": "Iraq", "tier": "low" },
-    { "name": "Jordan", "tier": "mid" },
 
     { "name": "Panama", "tier": "low" },
     { "name": "Haiti", "tier": "low" },
     { "name": "Curaçao", "tier": "low" },
-    { "name": "Honduras", "tier": "mid" },
-    { "name": "Costa Rica", "tier": "mid" },
-    { "name": "Jamaica", "tier": "mid" },
-    { "name": "El Salvador", "tier": "mid" },
-
     { "name": "Cape Verde", "tier": "low" },
     { "name": "DR Congo", "tier": "low" },
     { "name": "Tunisia", "tier": "low" },
-    { "name": "South Africa", "tier": "mid" },
+
+    { "name": "Costa Rica", "tier": "mid" },
+    { "name": "Honduras", "tier": "mid" },
+    { "name": "Jamaica", "tier": "mid" },
+    { "name": "El Salvador", "tier": "mid" },
 
     { "name": "New Zealand", "tier": "mid" }
   ]

@@ -1,44 +1,127 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Tracker</title>
+  <title>World Cup Tracker</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: white;
+      padding: 30px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 15px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.05);
+      padding: 15px;
+      border-radius: 12px;
+    }
+
+    .name {
+      font-weight: bold;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+
+    .team {
+      font-size: 14px;
+      margin: 4px 0;
+    }
+
+    .empty {
+      opacity: 0.5;
+    }
+
+    .round {
+      text-align: center;
+      margin-bottom: 20px;
+      opacity: 0.8;
+    }
+  </style>
 </head>
 
 <body>
 
-<h1>Team Tracker</h1>
+<h1>⚽ Live World Cup Tracker</h1>
 
-<button onclick="load()">Refresh</button>
+<div id="round" class="round"></div>
 
-<div id="output"></div>
+<div id="grid" class="grid"></div>
+
+<!-- ================= FIREBASE ================= -->
+
+<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
 
 <script>
-let data = null;
+  const firebaseConfig = {
+    apiKey: "AIzaSyDgzUhc-cVSoPAejfxV-pHUC2jAZIxTAXw",
+    authDomain: "tt-world-cup-sweepstake.firebaseapp.com",
+    projectId: "tt-world-cup-sweepstake",
+    storageBucket: "tt-world-cup-sweepstake.firebasestorage.app",
+    messagingSenderId: "786742826315",
+    appId: "1:786742826315:web:9fd75b68ad277f5173c4ce"
+  };
 
-async function load() {
-  const res = await fetch("./teams.json");
-  data = await res.json();
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
 
-  let html = "";
+<!-- ================= LIVE LISTENER ================= -->
+
+<script>
+
+function render(data) {
+  const grid = document.getElementById("grid");
+  const roundBox = document.getElementById("round");
+
+  roundBox.innerHTML = `Round ${data.round || 1}`;
+
+  grid.innerHTML = "";
 
   data.people.forEach(p => {
-    html += "<h3>" + p.name + "</h3>";
+
+    const card = document.createElement("div");
+    card.className = "card";
+
+    let html = `<div class="name">${p.name}</div>`;
 
     if (p.teams.length === 0) {
-      html += "<p>No teams yet</p>";
+      html += `<div class="team empty">No teams yet</div>`;
     } else {
-      html += "<ul>";
       p.teams.forEach(t => {
-        html += "<li>" + t + "</li>";
+        html += `<div class="team">⚽ ${t}</div>`;
       });
-      html += "</ul>";
     }
-  });
 
-  document.getElementById("output").innerHTML = html;
+    card.innerHTML = html;
+    grid.appendChild(card);
+  });
 }
 
-load();
+// 🔥 LIVE FIREBASE LISTENER
+db.collection("draw").doc("current")
+  .onSnapshot(doc => {
+
+    if (!doc.exists) return;
+
+    const data = doc.data();
+    render(data);
+
+  });
+
 </script>
 
 </body>

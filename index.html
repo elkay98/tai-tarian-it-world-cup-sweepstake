@@ -55,11 +55,6 @@
       opacity: 0.8;
     }
 
-    .flag {
-      font-size: 28px;
-      margin-right: 10px;
-    }
-
     .landed {
       animation: pop 0.4s ease;
     }
@@ -83,7 +78,30 @@
   <div id="remaining" class="remaining"></div>
 </div>
 
+<!-- ================= FIREBASE (PASTE LOCATION START) ================= -->
+
+<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
+
 <script>
+  // 🔥 FIREBASE INIT (DO NOT TOUCH)
+  const firebaseConfig = {
+    apiKey: "AIzaSyDgzUhc-cVSoPAejfxV-pHUC2jAZIxTAXw",
+    authDomain: "tt-world-cup-sweepstake.firebaseapp.com",
+    projectId: "tt-world-cup-sweepstake",
+    storageBucket: "tt-world-cup-sweepstake.firebasestorage.app",
+    messagingSenderId: "786742826315",
+    appId: "1:786742826315:web:9fd75b68ad277f5173c4ce"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
+
+<!-- ================= FIREBASE (PASTE LOCATION END) ================= -->
+
+<script>
+
 let data = null;
 let round = 1;
 
@@ -151,6 +169,15 @@ function getAvailablePeople() {
   return data.people.filter(p => p.teams.length < round);
 }
 
+async function saveToFirebase() {
+  // 🔥 THIS is where data gets saved permanently
+  await db.collection("draw").doc("current").set({
+    people: data.people,
+    teams: data.teams,
+    round: round
+  });
+}
+
 function drawTeam() {
   if (!data) return;
 
@@ -182,7 +209,7 @@ function drawTeam() {
   const resultBox = document.getElementById("result");
 
   let elapsed = 0;
-  const duration = 2200; // ✅ 2–3 second draw
+  const duration = 2200;
   const intervalTime = 120;
 
   resultBox.classList.remove("landed");
@@ -200,7 +227,7 @@ function drawTeam() {
     if (elapsed > duration * 0.7) {
       clearInterval(interval);
 
-      setTimeout(() => {
+      setTimeout(async () => {
 
         person.teams.push(team.name);
 
@@ -211,6 +238,9 @@ function drawTeam() {
 
         document.getElementById("remaining").innerHTML =
           `Round ${round}: ${getAvailablePeople().length} people still need teams`;
+
+        // 🔥 SAVE TO FIREBASE (IMPORTANT)
+        await saveToFirebase();
 
       }, 400);
     }

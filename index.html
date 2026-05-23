@@ -1,123 +1,53 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>World Cup Draw</title>
+<script>
+let data = null;
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #121212;
-      color: white;
-      text-align: center;
-      padding: 30px;
-    }
+async function init() {
+  const res = await fetch("./teams.json");
+  data = await res.json();
+}
 
-    h1 {
-      color: #00ff9d;
-    }
+function getAvailablePeople() {
+  return data.people.filter(p => p.teams.length < 2);
+}
 
-    button {
-      background: #00ff9d;
-      border: none;
-      padding: 15px 30px;
-      font-size: 18px;
-      border-radius: 10px;
-      cursor: pointer;
-      margin-top: 20px;
-    }
+function drawTeam() {
 
-    button:hover {
-      opacity: 0.9;
-    }
+  const availablePeople = getAvailablePeople();
 
-    #result {
-      margin-top: 40px;
-      font-size: 28px;
-      font-weight: bold;
-    }
+  if (availablePeople.length === 0) {
+    document.getElementById("result").innerHTML = "✅ Draw complete!";
+    return;
+  }
 
-    #remaining {
-      margin-top: 30px;
-      color: #bbbbbb;
-    }
+  // pick random person who still needs teams
+  const personIndex = Math.floor(Math.random() * availablePeople.length);
+  const person = availablePeople[personIndex];
 
-    a {
-      color: #00ff9d;
-      text-decoration: none;
-      display: inline-block;
-      margin-top: 30px;
-    }
-  </style>
-</head>
+  // FIXED: derive remaining teams ONLY from data.teams + people assignments
+  const remainingTeams = data.teams.filter(t =>
+    !data.people.some(p => p.teams.includes(t.name))
+  );
 
-<body>
+  if (remainingTeams.length === 0) {
+    document.getElementById("result").innerHTML = "⚠️ No teams left!";
+    return;
+  }
 
-  <h1>🏆 World Cup Sweepstake Draw</h1>
+  // pick random team
+  const teamIndex = Math.floor(Math.random() * remainingTeams.length);
+  const team = remainingTeams[teamIndex];
 
-  <button onclick="drawTeam()">Draw Team</button>
+  // assign team
+  person.teams.push(team.name);
 
-  <div id="result">
-    Click the button to begin
-  </div>
+  // UI update
+  document.getElementById("result").innerHTML =
+    `${person.name} gets <br><br> 🌍 ${team.name}`;
 
-  <div id="remaining"></div>
+  document.getElementById("remaining").innerHTML =
+    `${getAvailablePeople().length} people still need teams`;
 
-  <a href="tracker.html">Go to Live Tracker →</a>
+}
 
-  <script>
-
-    const teams = [
-      "Brazil",
-      "Spain",
-      "Germany",
-      "France",
-      "Argentina",
-      "England"
-    ];
-
-    const people = [
-      "Liam",
-      "Sarah",
-      "Tom",
-      "Emma",
-      "Chris",
-      "Dan"
-    ];
-
-    let availableTeams = [...teams];
-    let availablePeople = [...people];
-
-    function drawTeam() {
-
-      if (availableTeams.length === 0 || availablePeople.length === 0) {
-        document.getElementById("result").innerHTML =
-          "✅ Draw complete!";
-        return;
-      }
-
-      const randomTeamIndex =
-        Math.floor(Math.random() * availableTeams.length);
-
-      const randomPersonIndex =
-        Math.floor(Math.random() * availablePeople.length);
-
-      const selectedTeam =
-        availableTeams.splice(randomTeamIndex, 1)[0];
-
-      const selectedPerson =
-        availablePeople.splice(randomPersonIndex, 1)[0];
-
-      document.getElementById("result").innerHTML =
-        `${selectedPerson} gets <br><br> 🌍 ${selectedTeam}`;
-
-      document.getElementById("remaining").innerHTML =
-        `${availableTeams.length} teams remaining`;
-
-    }
-
-  </script>
-
-</body>
-</html>
+init();
+</script>

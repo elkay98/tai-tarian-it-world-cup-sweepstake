@@ -174,13 +174,34 @@
 </div>
 
 <script>
-/* 🔊 STABLE AUDIO (FIXED) */
-const drum = new Audio("https://cdn.pixabay.com/download/audio/2022/11/15/audio_5c6f1d1c5e.mp3?filename=drum-roll-ambient-110213.mp3");
-const ding = new Audio("https://cdn.pixabay.com/download/audio/2022/03/15/audio_1105c8b0b5.mp3?filename=correct-2-46134.mp3");
-const cheer = new Audio("https://cdn.pixabay.com/download/audio/2022/03/10/audio_12f6b1f2d2.mp3?filename=cheer-2-6025.mp3");
-const aww = new Audio("https://cdn.pixabay.com/download/audio/2022/03/10/audio_5b4c1d7b0e.mp3?filename=aww-sad-1-6830.mp3");
+/* 🔊 WEB AUDIO ENGINE (NO FILES, NO CDN) */
+let audioCtx;
 
-drum.loop = true;
+function initAudio() {
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+function playSound(freq, duration = 0.3) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  osc.frequency.value = freq;
+  osc.type = "sine";
+
+  gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+
+  osc.start();
+  osc.stop(audioCtx.currentTime + duration);
+}
+
+function playDing() { playSound(880, 0.2); }
+function playCheer() { playSound(520, 0.4); }
+function playAww() { playSound(220, 0.4); }
+function playDrum() { playSound(120, 0.6); }
 </script>
 
 <script>
@@ -270,7 +291,8 @@ function updateProgress() {
 }
 
 function unlockAudio() {
-  drum.play().then(()=>{ drum.pause(); drum.currentTime=0; });
+  if (!audioCtx) initAudio();
+  playDrum();
 }
 
 async function startDraw() {
@@ -286,8 +308,6 @@ async function startDraw() {
   unlockAudio();
 
   const result = document.getElementById("result");
-
-  drum.play();
 
   while (true) {
 
@@ -331,14 +351,11 @@ async function startDraw() {
           showFlag(team.name);
           updateProgress();
 
-          drum.pause();
-          drum.currentTime = 0;
+          if (isBig(team.name)) playCheer();
+          else if (isBad(team.name)) playAww();
+          else playDing();
 
-          if (isBig(team.name)) cheer.play();
-          else if (isBad(team.name)) aww.play();
-          else ding.play();
-
-          drum.play();
+          playDrum();
 
           res();
         }
@@ -351,7 +368,6 @@ async function startDraw() {
     await new Promise(r => setTimeout(r, 2000));
   }
 
-  drum.pause();
   result.innerHTML = "🎉 Complete!";
   running = false;
 }

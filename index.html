@@ -18,7 +18,6 @@
       height: 100vh;
     }
 
-    /* LEFT */
     .left {
       width: 40%;
       display: flex;
@@ -78,7 +77,6 @@
       opacity: 0.8;
     }
 
-    /* RIGHT */
     .right {
       width: 60%;
       padding: 40px;
@@ -101,7 +99,6 @@
       background: rgba(255,255,255,0.06);
       padding: 15px;
       border-radius: 12px;
-      font-size: 16px;
       animation: pop 0.3s ease;
     }
 
@@ -127,13 +124,13 @@
 
 <div class="wrapper">
 
-  <!-- LEFT SIDE -->
+  <!-- LEFT -->
   <div class="left" id="leftPanel">
 
     <div class="container">
       <h1>⚽ Sweepstake Draw</h1>
 
-      <button onclick="drawTeam()" id="drawBtn">Draw</button>
+      <button onclick="startDraw()" id="drawBtn">Start Draw</button>
 
       <div id="result" class="result"></div>
       <div id="remaining" class="remaining"></div>
@@ -141,12 +138,10 @@
 
   </div>
 
-  <!-- RIGHT SIDE -->
+  <!-- RIGHT -->
   <div class="right">
-
     <div class="feed-title">Live Results</div>
     <div id="feed" class="feed"></div>
-
   </div>
 
 </div>
@@ -174,6 +169,7 @@
 let data = null;
 let round = 1;
 let isAdmin = false;
+let running = false;
 
 async function init() {
   const res = await fetch("./teams.json");
@@ -207,52 +203,14 @@ function getFlag(team) {
     "Germany": "🇩🇪",
     "Netherlands": "🇳🇱",
     "Italy": "🇮🇹",
-    "Belgium": "🇧🇪",
-    "Croatia": "🇭🇷",
-    "Uruguay": "🇺🇾",
-    "USA": "🇺🇸",
-    "Mexico": "🇲🇽",
-    "Canada": "🇨🇦",
-    "Japan": "🇯🇵",
-    "South Korea": "🇰🇷",
-    "Morocco": "🇲🇦",
-    "Senegal": "🇸🇳",
-    "Switzerland": "🇨🇭",
-    "Denmark": "🇩🇰",
-    "Austria": "🇦🇹",
-    "Poland": "🇵🇱",
-    "Wales": "🏴",
-    "Scotland": "🏴",
-    "Serbia": "🇷🇸",
-    "Ukraine": "🇺🇦",
-    "Turkey": "🇹🇷",
-    "Nigeria": "🇳🇬",
-    "Egypt": "🇪🇬",
-    "Ghana": "🇬🇭",
-    "Cameroon": "🇨🇲",
-    "Algeria": "🇩🇿",
-    "Tunisia": "🇹🇳",
-    "Ecuador": "🇪🇨",
-    "Colombia": "🇨🇴",
-    "Chile": "🇨🇱",
-    "Peru": "🇵🇪",
-    "Paraguay": "🇵🇾",
-    "Iran": "🇮🇷",
-    "Saudi Arabia": "🇸🇦",
-    "Qatar": "🇶🇦",
-    "Australia": "🇦🇺",
-    "New Zealand": "🇳🇿",
-    "Costa Rica": "🇨🇷",
-    "Panama": "🇵🇦",
-    "Honduras": "🇭🇳",
-    "Ivory Coast": "🇨🇮"
+    "Belgium": "🇧🇪"
   };
 
   return flags[team] || "🌍";
 }
 
 function getAvailablePeople() {
-  return data.people.filter(p => p.teams.length < round);
+  return data.people.filter(p => p.teams.length < 2);
 }
 
 async function saveToFirebase() {
@@ -275,66 +233,75 @@ function addToFeed(text) {
   feed.prepend(card);
 }
 
-function drawTeam() {
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
-  if (!data) return;
+async function startDraw() {
+
+  if (running) return;
+  running = true;
 
   moveUI();
 
-  const peopleLeft = getAvailablePeople();
-
-  if (peopleLeft.length === 0) {
-    round++;
-    return;
-  }
-
-  const person = peopleLeft[Math.floor(Math.random() * peopleLeft.length)];
-
-  const assignedTeams = data.people.flatMap(p => p.teams);
-
-  const remainingTeams = data.teams.filter(t =>
-    !assignedTeams.includes(t.name)
-  );
-
-  const team = remainingTeams[Math.floor(Math.random() * remainingTeams.length)];
-
   const resultBox = document.getElementById("result");
 
-  let elapsed = 0;
-  const duration = 2200;
-  const intervalTime = 120;
+  while (true) {
 
-  resultBox.classList.remove("landed");
+    const peopleLeft = getAvailablePeople();
 
-  const interval = setInterval(() => {
+    if (peopleLeft.length === 0) break;
 
-    const tempPerson = peopleLeft[Math.floor(Math.random() * peopleLeft.length)];
-    const tempTeam = remainingTeams[Math.floor(Math.random() * remainingTeams.length)];
+    const person = peopleLeft[Math.floor(Math.random() * peopleLeft.length)];
 
-    resultBox.innerHTML = `🎲 ${tempPerson.name} → ${tempTeam.name}`;
+    const assignedTeams = data.people.flatMap(p => p.teams);
 
-    elapsed += intervalTime;
+    const remainingTeams = data.teams.filter(t =>
+      !assignedTeams.includes(t.name)
+    );
 
-    if (elapsed > duration * 0.7) {
-      clearInterval(interval);
+    const team = remainingTeams[Math.floor(Math.random() * remainingTeams.length)];
 
-      setTimeout(async () => {
+    // fake spinning
+    let elapsed = 0;
+    const duration = 1200;
+    const intervalTime = 100;
 
-        person.teams.push(team.name);
+    await new Promise(resolve => {
 
-        const final = `${getFlag(team.name)} ${person.name} → ${team.name}`;
+      const interval = setInterval(() => {
 
-        resultBox.innerHTML = final;
-        resultBox.classList.add("landed");
+        const tempPerson = peopleLeft[Math.floor(Math.random() * peopleLeft.length)];
+        const tempTeam = remainingTeams[Math.floor(Math.random() * remainingTeams.length)];
 
-        addToFeed(final); // ✅ FLAG USED HERE IN LIVE FEED
+        resultBox.innerHTML = `🎲 ${tempPerson.name} → ${tempTeam.name}`;
 
-        await saveToFirebase();
+        elapsed += intervalTime;
 
-      }, 400);
-    }
+        if (elapsed > duration) {
+          clearInterval(interval);
 
-  }, intervalTime);
+          person.teams.push(team.name);
+
+          const final = `${getFlag(team.name)} ${person.name} → ${team.name}`;
+
+          resultBox.innerHTML = final;
+          addToFeed(final);
+          saveToFirebase();
+
+          resolve();
+        }
+
+      }, intervalTime);
+
+    });
+
+    // ⏱️ 2 SECOND DELAY BETWEEN RESULTS
+    await sleep(2000);
+  }
+
+  resultBox.innerHTML = "🎉 Draw Complete!";
+  running = false;
 }
 
 init();

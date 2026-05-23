@@ -139,7 +139,6 @@
       from { transform: scale(0.95); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
     }
-
   </style>
 </head>
 
@@ -147,9 +146,7 @@
 
 <div class="wrapper">
 
-  <!-- LEFT -->
   <div class="left" id="leftPanel">
-
     <div class="container">
       <h1>⚽ Sweepstake Draw</h1>
 
@@ -167,10 +164,8 @@
       </div>
 
     </div>
-
   </div>
 
-  <!-- RIGHT -->
   <div class="right">
     <div class="feed-title">Live Results</div>
     <div id="feed" class="feed"></div>
@@ -179,8 +174,8 @@
 </div>
 
 <script>
-/* 🔊 RELIABLE AUDIO SOURCES */
-const drum = new Audio("https://cdn.pixabay.com/download/audio/2022/03/15/audio_115b9b5c6d.mp3?filename=drum-roll-1-6846.mp3");
+/* 🔊 STABLE AUDIO (FIXED) */
+const drum = new Audio("https://cdn.pixabay.com/download/audio/2022/11/15/audio_5c6f1d1c5e.mp3?filename=drum-roll-ambient-110213.mp3");
 const ding = new Audio("https://cdn.pixabay.com/download/audio/2022/03/15/audio_1105c8b0b5.mp3?filename=correct-2-46134.mp3");
 const cheer = new Audio("https://cdn.pixabay.com/download/audio/2022/03/10/audio_12f6b1f2d2.mp3?filename=cheer-2-6025.mp3");
 const aww = new Audio("https://cdn.pixabay.com/download/audio/2022/03/10/audio_5b4c1d7b0e.mp3?filename=aww-sad-1-6830.mp3");
@@ -309,37 +304,38 @@ async function startDraw() {
 
     const team = remaining[Math.floor(Math.random()*remaining.length)];
 
-    let t=0;
-    const duration=1200;
+    let t = 0;
+    const duration = 1200;
 
-    await new Promise(res=>{
+    await new Promise(res => {
 
-      const i=setInterval(()=>{
+      const i = setInterval(() => {
 
-        const p=peopleLeft[Math.floor(Math.random()*peopleLeft.length)];
-        const tm=remaining[Math.floor(Math.random()*remaining.length)];
+        const p = peopleLeft[Math.floor(Math.random()*peopleLeft.length)];
+        const tm = remaining[Math.floor(Math.random()*remaining.length)];
 
-        result.innerHTML=`🎲 ${p.name} → ${tm.name}`;
+        result.innerHTML = `🎲 ${p.name} → ${tm.name}`;
 
-        t+=100;
+        t += 100;
 
-        if(t>duration){
+        if (t > duration) {
           clearInterval(i);
 
           person.teams.push(team.name);
 
-          const final=`${getFlag(team.name)} ${person.name} → ${team.name}`;
+          const final = `${getFlag(team.name)} ${person.name} → ${team.name}`;
 
-          result.innerHTML=final;
+          result.innerHTML = final;
 
           addToFeed(final);
           showFlag(team.name);
           updateProgress();
 
-          drum.pause(); drum.currentTime=0;
+          drum.pause();
+          drum.currentTime = 0;
 
-          if(isBig(team.name)) cheer.play();
-          else if(isBad(team.name)) aww.play();
+          if (isBig(team.name)) cheer.play();
+          else if (isBad(team.name)) aww.play();
           else ding.play();
 
           drum.play();
@@ -347,17 +343,17 @@ async function startDraw() {
           res();
         }
 
-      },100);
+      }, 100);
 
     });
 
     await waitWhilePaused();
-    await new Promise(r=>setTimeout(r,2000));
+    await new Promise(r => setTimeout(r, 2000));
   }
 
   drum.pause();
-  result.innerHTML="🎉 Complete!";
-  running=false;
+  result.innerHTML = "🎉 Complete!";
+  running = false;
 }
 
 init();

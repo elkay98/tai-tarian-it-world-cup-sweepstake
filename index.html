@@ -1,63 +1,39 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>World Cup Sweepstake</title>
+  <title>Sweepstake</title>
 </head>
 
 <body>
 
-  <h1>World Cup Sweepstake</h1>
+<h1>Sweepstake</h1>
 
-  <button onclick="drawTeam()">Draw</button>
+<button onclick="draw()">Draw</button>
 
-  <div id="result" style="margin-top:20px; font-size:20px;"></div>
-  <div id="remaining" style="margin-top:10px;"></div>
+<div id="result"></div>
 
 <script>
-let data = null;
+const people = [
+  "Scott Taylor",
+  "Rhys Lowe",
+  "Adrian Compton",
+  "Jodie Rogers"
+];
 
-async function init() {
-  const res = await fetch("./teams.json");
-  data = await res.json();
-}
+const teams = [
+  "Brazil",
+  "France",
+  "England",
+  "Spain"
+];
 
-function getAvailablePeople() {
-  return data.people.filter(p => p.teams.length < 2);
-}
-
-function drawTeam() {
-  if (!data) {
-    document.getElementById("result").innerHTML = "Loading data...";
-    return;
-  }
-
-  const availablePeople = getAvailablePeople();
-
-  if (availablePeople.length === 0) {
-    document.getElementById("result").innerHTML = "✅ Draw complete!";
-    return;
-  }
-
-  const person =
-    availablePeople[Math.floor(Math.random() * availablePeople.length)];
-
-  const remainingTeams = data.teams.filter(t =>
-    !data.people.some(p => p.teams.includes(t.name))
-  );
-
-  const team =
-    remainingTeams[Math.floor(Math.random() * remainingTeams.length)];
-
-  person.teams.push(team.name);
+function draw() {
+  const person = people[Math.floor(Math.random() * people.length)];
+  const team = teams[Math.floor(Math.random() * teams.length)];
 
   document.getElementById("result").innerHTML =
-    person.name + " → " + team.name;
-
-  document.getElementById("remaining").innerHTML =
-    getAvailablePeople().length + " people still need teams";
+    person + " → " + team;
 }
-
-init();
 </script>
 
 </body>

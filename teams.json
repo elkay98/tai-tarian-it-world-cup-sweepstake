@@ -27,31 +27,49 @@
   ],
 
   "teams": [
+
+    /* 🟢 ELITE */
     { "name": "Argentina", "tier": "elite" },
     { "name": "Brazil", "tier": "elite" },
     { "name": "England", "tier": "elite" },
     { "name": "France", "tier": "elite" },
     { "name": "Germany", "tier": "elite" },
-    { "name": "Netherlands", "tier": "elite" },
-    { "name": "Portugal", "tier": "elite" },
     { "name": "Spain", "tier": "elite" },
+    { "name": "Portugal", "tier": "elite" },
+    { "name": "Netherlands", "tier": "elite" },
 
-    { "name": "Italy", "tier": "strong" },
-    { "name": "Belgium", "tier": "strong" },
-    { "name": "Croatia", "tier": "strong" },
-    { "name": "Uruguay", "tier": "strong" },
-    { "name": "Switzerland", "tier": "strong" },
-    { "name": "Denmark", "tier": "strong" },
-    { "name": "Poland", "tier": "strong" },
-    { "name": "Serbia", "tier": "strong" },
-    { "name": "Ukraine", "tier": "strong" },
-    { "name": "Turkey", "tier": "strong" },
+    /* 🟡 STRONG / HIGH MID */
+    { "name": "Belgium", "tier": "mid" },
+    { "name": "Croatia", "tier": "mid" },
+    { "name": "Uruguay", "tier": "mid" },
+    { "name": "Switzerland", "tier": "mid" },
+    { "name": "Denmark", "tier": "mid" },
+    { "name": "Austria", "tier": "mid" },
+    { "name": "Serbia", "tier": "mid" },
+    { "name": "Ukraine", "tier": "mid" },
+    { "name": "Turkey", "tier": "mid" },
+    { "name": "Poland", "tier": "mid" },
 
+    /* 🌍 CONCACAF */
     { "name": "USA", "tier": "mid" },
     { "name": "Mexico", "tier": "mid" },
     { "name": "Canada", "tier": "mid" },
-    { "name": "Japan", "tier": "mid" },
-    { "name": "South Korea", "tier": "mid" },
+    { "name": "Panama", "tier": "low" },
+    { "name": "Haiti", "tier": "low" },
+    { "name": "Curaçao", "tier": "low" },
+    { "name": "Costa Rica", "tier": "mid" },
+    { "name": "Honduras", "tier": "mid" },
+
+    /* 🌎 CONMEBOL */
+    { "name": "Colombia", "tier": "mid" },
+    { "name": "Ecuador", "tier": "mid" },
+    { "name": "Chile", "tier": "mid" },
+    { "name": "Peru", "tier": "mid" },
+    { "name": "Paraguay", "tier": "mid" },
+    { "name": "Uruguay", "tier": "mid" },
+    { "name": "Bolivia", "tier": "low" },
+
+    /* 🌍 AFRICA */
     { "name": "Morocco", "tier": "mid" },
     { "name": "Senegal", "tier": "mid" },
     { "name": "Nigeria", "tier": "mid" },
@@ -59,22 +77,21 @@
     { "name": "Ghana", "tier": "mid" },
     { "name": "Cameroon", "tier": "mid" },
     { "name": "Algeria", "tier": "mid" },
+    { "name": "Tunisia", "tier": "low" },
+    { "name": "Cape Verde", "tier": "low" },
+    { "name": "DR Congo", "tier": "low" },
 
-    { "name": "Ecuador", "tier": "mid" },
-    { "name": "Colombia", "tier": "mid" },
-    { "name": "Chile", "tier": "mid" },
-    { "name": "Peru", "tier": "mid" },
-    { "name": "Paraguay", "tier": "mid" },
+    /* 🌏 ASIA */
+    { "name": "Japan", "tier": "mid" },
+    { "name": "South Korea", "tier": "mid" },
     { "name": "Iran", "tier": "mid" },
     { "name": "Saudi Arabia", "tier": "mid" },
     { "name": "Qatar", "tier": "mid" },
-    { "name": "Australia", "tier": "low" },
-    { "name": "New Zealand", "tier": "mid" },
-    { "name": "Costa Rica", "tier": "mid" },
-    { "name": "Panama", "tier": "low" },
-    { "name": "Honduras", "tier": "mid" },
-    { "name": "Ivory Coast", "tier": "mid" },
+    { "name": "Iraq", "tier": "low" },
+    { "name": "Uzbekistan", "tier": "low" },
+    { "name": "Australia", "tier": "mid" },
 
-    { "name": "Tunisia", "tier": "low" }
+    /* 🌏 OCEANIA */
+    { "name": "New Zealand", "tier": "mid" }
   ]
 }

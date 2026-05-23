@@ -48,7 +48,6 @@
       min-height: 60px;
     }
 
-    /* 🏳️ MAIN FLAG DISPLAY */
     #mainFlag {
       font-size: 90px;
       margin: 15px 0;
@@ -60,6 +59,28 @@
     #mainFlag.show {
       opacity: 1;
       transform: scale(1);
+    }
+
+    /* 🟦 ROUND TITLE */
+    #roundTitle {
+      font-size: 18px;
+      opacity: 0.8;
+      margin-bottom: 10px;
+    }
+
+    /* 🎬 ROUND OVERLAY */
+    #roundOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      z-index: 999;
     }
 
     .right {
@@ -80,7 +101,6 @@
       margin-top: 10px;
     }
 
-    /* 📊 PROGRESS */
     #progressWrapper {
       margin-top: 12px;
       width: 100%;
@@ -109,14 +129,18 @@
 
 <body>
 
+<!-- 🎬 ROUND OVERLAY -->
+<div id="roundOverlay">ROUND COMPLETE</div>
+
 <div class="wrapper">
 
   <div class="left">
     <div class="container">
 
+      <div id="roundTitle">Round 1</div>
+
       <h1>⚽ T&I World Cup 2026 Sweepstake</h1>
 
-      <!-- 🏳️ MAIN FLAG -->
       <div id="mainFlag">🏳️</div>
 
       <input type="password" id="adminPass" placeholder="Admin password">
@@ -128,7 +152,6 @@
         <button onclick="resetDraw()">Reset</button>
       </div>
 
-      <!-- 📊 PROGRESS -->
       <div id="progressWrapper">
         <div id="progressBar"></div>
       </div>
@@ -145,38 +168,17 @@
 
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-import {
-  getFirestore,
-  doc,
-  setDoc
-} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDgzUhc-cVSoPAejfxV-pHUC2jAZIxTAXw",
-  authDomain: "tt-world-cup-sweepstake.firebaseapp.com",
-  projectId: "tt-world-cup-sweepstake",
-  storageBucket: "tt-world-cup-sweepstake.firebasestorage.app",
-  messagingSenderId: "786742826315",
-  appId: "1:786742826315:web:9fd75b68ad277f5173c4ce"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-window.db = db;
-window.firebaseSet = setDoc;
-window.firebaseDoc = doc;
-</script>
-
 <script>
 let data;
 let running = false;
 let paused = false;
 let ctx;
+
 let totalPeople = 0;
 let completed = 0;
+
+let round = 1;
+const MAX_ROUNDS = 2;
 
 const ADMIN_PASSWORD = 'TTWCSweep2026-!"£';
 
@@ -213,7 +215,24 @@ function updateProgress(){
     percent + "% complete (" + completed + "/" + totalPeople + ")";
 }
 
-/* 🔊 AUDIO SYSTEM */
+/* 🎬 ROUND COMPLETE */
+function showRoundComplete(nextRound){
+  const overlay = document.getElementById("roundOverlay");
+  overlay.style.display = "flex";
+  overlay.innerText = "ROUND COMPLETE";
+
+  setTimeout(() => {
+    overlay.style.display = "none";
+
+    round = nextRound;
+    document.getElementById("roundTitle").innerText =
+      "Round " + round;
+
+    startDraw(); // auto continue
+  }, 2500);
+}
+
+/* 🔊 AUDIO */
 function initAudio(){
   ctx = new (window.AudioContext || window.webkitAudioContext)();
 }
@@ -223,7 +242,6 @@ function tone(freq, duration=250, volume=0.12){
   const g = o.context.createGain();
 
   o.type = "sine";
-
   o.connect(g);
   g.connect(ctx.destination);
 
@@ -234,23 +252,18 @@ function tone(freq, duration=250, volume=0.12){
   setTimeout(()=>o.stop(), duration);
 }
 
-function playDing(){
-  tone(660, 180, 0.10);
-}
-
+function playDing(){ tone(660,180,0.1); }
 function playCheer(){
-  tone(520, 220, 0.12);
-  setTimeout(()=>tone(780, 220, 0.12), 120);
-  setTimeout(()=>tone(1040, 300, 0.14), 240);
+  tone(520,220,0.12);
+  setTimeout(()=>tone(780,220,0.12),120);
+  setTimeout(()=>tone(1040,300,0.14),240);
 }
-
 function playAww(){
-  tone(420, 220, 0.12);
-  setTimeout(()=>tone(260, 260, 0.10), 140);
+  tone(420,220,0.12);
+  setTimeout(()=>tone(260,260,0.1),140);
 }
-
 function drumroll(){
-  tone(110, 120);
+  tone(110,120);
   setTimeout(()=>tone(130,120),140);
   setTimeout(()=>tone(100,120),280);
 }
@@ -271,7 +284,7 @@ const flags = {
   "DR Congo":"🇨🇩","Tunisia":"🇹🇳"
 };
 
-/* ⚽ DRAW */
+/* ⚽ DRAW SYSTEM (2 ROUNDS) */
 function startDraw(){
   if(running) return;
   running = true;
@@ -288,7 +301,14 @@ function startDraw(){
   let i = 0;
 
   function step(){
-    if(i >= people.length) return;
+    if(i >= people.length){
+
+      if(round < MAX_ROUNDS){
+        showRoundComplete(round + 1);
+      }
+
+      return;
+    }
 
     if(paused){
       setTimeout(step, 500);
@@ -300,8 +320,6 @@ function startDraw(){
 
     drumroll();
 
-    document.getElementById("result").innerText = "Drawing...";
-
     setTimeout(() => {
 
       const flag = flags[team] || "🏳️";
@@ -309,14 +327,11 @@ function startDraw(){
       document.getElementById("result").innerText =
         person.name + " → " + flag + " " + team;
 
-      /* 🏳️ MAIN FLAG UPDATE */
       const mainFlag = document.getElementById("mainFlag");
       mainFlag.innerText = flag;
       mainFlag.classList.add("show");
 
-      setTimeout(() => {
-        mainFlag.classList.remove("show");
-      }, 1200);
+      setTimeout(()=>mainFlag.classList.remove("show"),1200);
 
       const div = document.createElement("div");
       div.className = "card";
@@ -327,20 +342,12 @@ function startDraw(){
       completed++;
       updateProgress();
 
-      if(["Argentina","Brazil","France","England","Spain","Germany","Portugal","Netherlands"].includes(team)){
-        playCheer();
-      }
-      else if(["Haiti","Cape Verde","Curaçao"].includes(team)){
-        playAww();
-      }
-      else {
-        playDing();
-      }
+      playDing();
 
-    }, 1500);
+    }, 1200);
 
     i++;
-    setTimeout(step, 2200);
+    setTimeout(step, 2000);
   }
 
   step();
@@ -354,6 +361,10 @@ function resetDraw(){
   document.getElementById("result").innerText = "";
 
   completed = 0;
+  round = 1;
+
+  document.getElementById("roundTitle").innerText = "Round 1";
+
   updateProgress();
 
   alert("Reset complete");

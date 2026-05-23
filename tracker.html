@@ -21,14 +21,14 @@
     a {
       color: #00ff9d;
       text-decoration: none;
-      margin: 10px;
+      margin-bottom: 20px;
       display: inline-block;
     }
 
     table {
       margin: auto;
       border-collapse: collapse;
-      width: 80%;
+      width: 90%;
       margin-top: 30px;
     }
 
@@ -44,6 +44,11 @@
     tr:nth-child(even) {
       background: #1a1a1a;
     }
+
+    .leader {
+      background: #3a0000 !important;
+      font-weight: bold;
+    }
   </style>
 </head>
 
@@ -54,25 +59,54 @@
   <a href="index.html">← Back to Draw Page</a>
 
   <table>
-    <tr>
-      <th>Team</th>
-      <th>Owner</th>
-      <th>Goals Conceded</th>
-    </tr>
+    <thead>
+      <tr>
+        <th>Team</th>
+        <th>Owner</th>
+        <th>Goals Conceded</th>
+      </tr>
+    </thead>
 
-    <tr>
-      <td>Brazil</td>
-      <td>Liam</td>
-      <td>2</td>
-    </tr>
-
-    <tr>
-      <td>Spain</td>
-      <td>Sarah</td>
-      <td>5</td>
-    </tr>
-
+    <tbody id="tableBody">
+    </tbody>
   </table>
+
+  <script>
+
+    async function loadTeams() {
+
+      const response = await fetch("teams.json");
+      const teams = await response.json();
+
+      teams.sort((a, b) => b.goalsConceded - a.goalsConceded);
+
+      const tableBody = document.getElementById("tableBody");
+
+      tableBody.innerHTML = "";
+
+      teams.forEach((team, index) => {
+
+        const row = document.createElement("tr");
+
+        if (index === 0) {
+          row.classList.add("leader");
+        }
+
+        row.innerHTML = `
+          <td>${team.team}</td>
+          <td>${team.owner || "-"}</td>
+          <td>${team.goalsConceded}</td>
+        `;
+
+        tableBody.appendChild(row);
+
+      });
+
+    }
+
+    loadTeams();
+
+  </script>
 
 </body>
 </html>

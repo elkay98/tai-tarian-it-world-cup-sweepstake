@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>World Cup Sweepstake</title>
+  <title>T&I World Cup 2026 Sweepstake</title>
 
   <style>
     body {
@@ -79,14 +79,15 @@
       margin-top: 10px;
     }
 
-    /* 📊 PROGRESS BAR */
+    /* 📊 PROGRESS BAR (hidden by default) */
     #progressWrapper {
-      margin-top: 10px;
+      margin-top: 12px;
       width: 100%;
       background: rgba(255,255,255,0.1);
       border-radius: 10px;
       height: 10px;
       overflow: hidden;
+      display: none;
     }
 
     #progressBar {
@@ -100,6 +101,7 @@
       font-size: 12px;
       margin-top: 6px;
       opacity: 0.8;
+      display: none;
     }
   </style>
 </head>
@@ -111,13 +113,10 @@
   <div class="left">
     <div class="container">
 
-      <h1>⚽ Sweepstake Draw</h1>
+      <h1>⚽ T&I World Cup 2026 Sweepstake</h1>
 
-      <!-- 🔐 LOGIN -->
-      <div id="loginBox">
-        <input type="password" id="adminPass" placeholder="Admin password">
-        <button onclick="unlockAdmin()">Unlock</button>
-      </div>
+      <input type="password" id="adminPass" placeholder="Admin password">
+      <button onclick="unlockAdmin()">Unlock</button>
 
       <div id="adminPanel">
         <button onclick="startDraw()">Start Draw</button>
@@ -182,7 +181,8 @@ const ADMIN_PASSWORD = 'TTWCSweep2026-!"£';
 function unlockAdmin(){
   const input = document.getElementById("adminPass").value;
   if(input === ADMIN_PASSWORD){
-    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("adminPass").style.display = "none";
+    document.querySelector("button[onclick='unlockAdmin()']").style.display = "none";
     document.getElementById("adminPanel").style.display = "block";
   } else {
     alert("Wrong password");
@@ -196,7 +196,12 @@ function togglePause(){
     paused ? "Resume" : "Pause";
 }
 
-/* 📊 PROGRESS UPDATE */
+/* 📊 PROGRESS */
+function showProgress(){
+  document.getElementById("progressWrapper").style.display = "block";
+  document.getElementById("progressText").style.display = "block";
+}
+
 function updateProgress(){
   const percent = Math.round((completed / totalPeople) * 100);
 
@@ -205,12 +210,12 @@ function updateProgress(){
     percent + "% complete (" + completed + "/" + totalPeople + ")";
 }
 
-/* 🔊 AUDIO */
+/* 🔊 AUDIO (FIXED VARIATION) */
 function initAudio(){
   ctx = new (window.AudioContext || window.webkitAudioContext)();
 }
 
-function play(freq){
+function play(freq, time=200){
   const o = ctx.createOscillator();
   const g = ctx.createGain();
 
@@ -221,17 +226,18 @@ function play(freq){
   g.gain.value = 0.12;
 
   o.start();
-  setTimeout(()=>o.stop(), 250);
+  setTimeout(()=>o.stop(), time);
 }
 
-function playDing(){ play(700); }
-function playCheer(){ play(900); setTimeout(()=>play(1200),120); }
-function playAww(){ play(300); setTimeout(()=>play(200),120); }
+function playDing(){ play(700, 180); }
+function playCheer(){ play(950, 220); setTimeout(()=>play(1200,200),120); }
+function playAww(){ play(250, 260); setTimeout(()=>play(180,240),120); }
 
+/* 🎺 DRUMROLL (richer) */
 function drumroll(){
-  play(120);
-  setTimeout(()=>play(140),150);
-  setTimeout(()=>play(120),300);
+  play(110, 120);
+  setTimeout(()=>play(130,120),140);
+  setTimeout(()=>play(100,120),280);
 }
 
 /* 🏳️ FLAGS */
@@ -254,6 +260,8 @@ const flags = {
 function startDraw(){
   if(running) return;
   running = true;
+
+  showProgress(); // 👈 ONLY SHOW WHEN DRAW STARTS
 
   if(!ctx) initAudio();
 
@@ -313,7 +321,7 @@ function startDraw(){
 }
 
 /* 🧨 RESET */
-async function resetDraw(){
+function resetDraw(){
   if(!confirm("Reset everything?")) return;
 
   document.getElementById("feed").innerHTML = "";

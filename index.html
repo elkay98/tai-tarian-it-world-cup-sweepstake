@@ -18,7 +18,7 @@
       height: 100vh;
     }
 
-    /* LEFT PANEL */
+    /* LEFT */
     .left {
       width: 40%;
       display: flex;
@@ -39,7 +39,6 @@
       padding: 40px;
       border-radius: 20px;
       width: 320px;
-      transition: all 0.6s ease;
     }
 
     .left.moved .container {
@@ -79,7 +78,7 @@
       opacity: 0.8;
     }
 
-    /* RIGHT PANEL */
+    /* RIGHT */
     .right {
       width: 60%;
       padding: 40px;
@@ -128,7 +127,7 @@
 
 <div class="wrapper">
 
-  <!-- LEFT -->
+  <!-- LEFT SIDE -->
   <div class="left" id="leftPanel">
 
     <div class="container">
@@ -142,7 +141,7 @@
 
   </div>
 
-  <!-- RIGHT -->
+  <!-- RIGHT SIDE -->
   <div class="right">
 
     <div class="feed-title">Live Results</div>
@@ -175,7 +174,6 @@
 let data = null;
 let round = 1;
 let isAdmin = false;
-let drawCount = 0;
 
 async function init() {
   const res = await fetch("./teams.json");
@@ -198,14 +196,59 @@ function moveUI() {
   document.getElementById("leftPanel").classList.add("moved");
 }
 
-function addToFeed(text) {
-  const feed = document.getElementById("feed");
+function getFlag(team) {
+  const flags = {
+    "Argentina": "🇦🇷",
+    "Brazil": "🇧🇷",
+    "France": "🇫🇷",
+    "England": "🏴",
+    "Spain": "🇪🇸",
+    "Portugal": "🇵🇹",
+    "Germany": "🇩🇪",
+    "Netherlands": "🇳🇱",
+    "Italy": "🇮🇹",
+    "Belgium": "🇧🇪",
+    "Croatia": "🇭🇷",
+    "Uruguay": "🇺🇾",
+    "USA": "🇺🇸",
+    "Mexico": "🇲🇽",
+    "Canada": "🇨🇦",
+    "Japan": "🇯🇵",
+    "South Korea": "🇰🇷",
+    "Morocco": "🇲🇦",
+    "Senegal": "🇸🇳",
+    "Switzerland": "🇨🇭",
+    "Denmark": "🇩🇰",
+    "Austria": "🇦🇹",
+    "Poland": "🇵🇱",
+    "Wales": "🏴",
+    "Scotland": "🏴",
+    "Serbia": "🇷🇸",
+    "Ukraine": "🇺🇦",
+    "Turkey": "🇹🇷",
+    "Nigeria": "🇳🇬",
+    "Egypt": "🇪🇬",
+    "Ghana": "🇬🇭",
+    "Cameroon": "🇨🇲",
+    "Algeria": "🇩🇿",
+    "Tunisia": "🇹🇳",
+    "Ecuador": "🇪🇨",
+    "Colombia": "🇨🇴",
+    "Chile": "🇨🇱",
+    "Peru": "🇵🇪",
+    "Paraguay": "🇵🇾",
+    "Iran": "🇮🇷",
+    "Saudi Arabia": "🇸🇦",
+    "Qatar": "🇶🇦",
+    "Australia": "🇦🇺",
+    "New Zealand": "🇳🇿",
+    "Costa Rica": "🇨🇷",
+    "Panama": "🇵🇦",
+    "Honduras": "🇭🇳",
+    "Ivory Coast": "🇨🇮"
+  };
 
-  const card = document.createElement("div");
-  card.className = "card";
-  card.innerHTML = text;
-
-  feed.prepend(card);
+  return flags[team] || "🌍";
 }
 
 function getAvailablePeople() {
@@ -222,11 +265,21 @@ async function saveToFirebase() {
   });
 }
 
+function addToFeed(text) {
+  const feed = document.getElementById("feed");
+
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = text;
+
+  feed.prepend(card);
+}
+
 function drawTeam() {
 
   if (!data) return;
 
-  moveUI(); // 🔥 SHIFT LAYOUT ON FIRST DRAW
+  moveUI();
 
   const peopleLeft = getAvailablePeople();
 
@@ -269,12 +322,12 @@ function drawTeam() {
 
         person.teams.push(team.name);
 
-        const final = `⚽ ${person.name} → ${team.name}`;
+        const final = `${getFlag(team.name)} ${person.name} → ${team.name}`;
 
         resultBox.innerHTML = final;
         resultBox.classList.add("landed");
 
-        addToFeed(final);
+        addToFeed(final); // ✅ FLAG USED HERE IN LIVE FEED
 
         await saveToFirebase();
 

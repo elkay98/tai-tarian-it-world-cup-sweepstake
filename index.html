@@ -9,10 +9,28 @@
       font-family: Arial, sans-serif;
       background: linear-gradient(135deg, #0f172a, #1e293b);
       color: white;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .wrapper {
+      display: flex;
+      height: 100vh;
+    }
+
+    /* LEFT PANEL */
+    .left {
+      width: 40%;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      transition: all 0.6s ease;
+    }
+
+    .left.moved {
+      justify-content: flex-start;
+      align-items: flex-start;
+      padding: 40px;
     }
 
     .container {
@@ -20,12 +38,19 @@
       background: rgba(255, 255, 255, 0.05);
       padding: 40px;
       border-radius: 20px;
-      width: 420px;
+      width: 320px;
+      transition: all 0.6s ease;
+    }
+
+    .left.moved .container {
+      width: 100%;
+      text-align: left;
+      padding: 20px;
     }
 
     h1 {
       margin-bottom: 20px;
-      font-size: 24px;
+      font-size: 22px;
     }
 
     button {
@@ -38,19 +63,13 @@
       color: white;
     }
 
-    button:hover {
-      background: #2563eb;
-    }
-
     button:disabled {
       opacity: 0.5;
-      cursor: not-allowed;
     }
 
     .result {
-      margin-top: 25px;
-      font-size: 22px;
-      font-weight: bold;
+      margin-top: 20px;
+      font-size: 20px;
       min-height: 60px;
     }
 
@@ -60,31 +79,80 @@
       opacity: 0.8;
     }
 
-    .landed {
-      animation: pop 0.4s ease;
+    /* RIGHT PANEL */
+    .right {
+      width: 60%;
+      padding: 40px;
+      overflow-y: auto;
+    }
+
+    .feed-title {
+      font-size: 18px;
+      margin-bottom: 15px;
+      opacity: 0.8;
+    }
+
+    .feed {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.06);
+      padding: 15px;
+      border-radius: 12px;
+      font-size: 16px;
+      animation: pop 0.3s ease;
     }
 
     @keyframes pop {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .landed {
+      animation: popBig 0.4s ease;
+    }
+
+    @keyframes popBig {
       0% { transform: scale(1); }
       50% { transform: scale(1.08); }
       100% { transform: scale(1); }
     }
+
   </style>
 </head>
 
 <body>
 
-<div class="container">
-  <h1>⚽ World Cup Sweepstake</h1>
+<div class="wrapper">
 
-  <button onclick="drawTeam()" id="drawBtn">Draw</button>
+  <!-- LEFT -->
+  <div class="left" id="leftPanel">
 
-  <div id="result" class="result"></div>
-  <div id="remaining" class="remaining"></div>
+    <div class="container">
+      <h1>⚽ Sweepstake Draw</h1>
+
+      <button onclick="drawTeam()" id="drawBtn">Draw</button>
+
+      <div id="result" class="result"></div>
+      <div id="remaining" class="remaining"></div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right">
+
+    <div class="feed-title">Live Results</div>
+    <div id="feed" class="feed"></div>
+
+  </div>
+
 </div>
 
-<!-- ================= FIREBASE ================= -->
-
+<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
 
@@ -102,20 +170,18 @@
   const db = firebase.firestore();
 </script>
 
-<!-- ================= APP LOGIC ================= -->
-
 <script>
 
 let data = null;
 let round = 1;
 let isAdmin = false;
+let drawCount = 0;
 
 async function init() {
   const res = await fetch("./teams.json");
   data = await res.json();
 
   document.getElementById("drawBtn").disabled = true;
-
   checkAdmin();
 }
 
@@ -124,67 +190,22 @@ function checkAdmin() {
 
   if (pass === "TTWCSweep2026-!\"£") {
     isAdmin = true;
-    alert("Admin unlocked");
     document.getElementById("drawBtn").disabled = false;
-  } else {
-    alert("Read-only mode enabled");
-    document.getElementById("drawBtn").disabled = true;
   }
 }
 
-function getFlag(team) {
-  const flags = {
-    "Argentina": "🇦🇷",
-    "Brazil": "🇧🇷",
-    "France": "🇫🇷",
-    "England": "🏴",
-    "Spain": "🇪🇸",
-    "Portugal": "🇵🇹",
-    "Germany": "🇩🇪",
-    "Netherlands": "🇳🇱",
-    "Italy": "🇮🇹",
-    "Belgium": "🇧🇪",
-    "Croatia": "🇭🇷",
-    "Uruguay": "🇺🇾",
-    "USA": "🇺🇸",
-    "Mexico": "🇲🇽",
-    "Canada": "🇨🇦",
-    "Japan": "🇯🇵",
-    "South Korea": "🇰🇷",
-    "Morocco": "🇲🇦",
-    "Senegal": "🇸🇳",
-    "Switzerland": "🇨🇭",
-    "Denmark": "🇩🇰",
-    "Austria": "🇦🇹",
-    "Poland": "🇵🇱",
-    "Wales": "🏴",
-    "Scotland": "🏴",
-    "Serbia": "🇷🇸",
-    "Ukraine": "🇺🇦",
-    "Turkey": "🇹🇷",
-    "Nigeria": "🇳🇬",
-    "Egypt": "🇪🇬",
-    "Ghana": "🇬🇭",
-    "Cameroon": "🇨🇲",
-    "Algeria": "🇩🇿",
-    "Tunisia": "🇹🇳",
-    "Ecuador": "🇪🇨",
-    "Colombia": "🇨🇴",
-    "Chile": "🇨🇱",
-    "Peru": "🇵🇪",
-    "Paraguay": "🇵🇾",
-    "Iran": "🇮🇷",
-    "Saudi Arabia": "🇸🇦",
-    "Qatar": "🇶🇦",
-    "Australia": "🇦🇺",
-    "New Zealand": "🇳🇿",
-    "Costa Rica": "🇨🇷",
-    "Panama": "🇵🇦",
-    "Honduras": "🇭🇳",
-    "Ivory Coast": "🇨🇮"
-  };
+function moveUI() {
+  document.getElementById("leftPanel").classList.add("moved");
+}
 
-  return flags[team] || "🌍";
+function addToFeed(text) {
+  const feed = document.getElementById("feed");
+
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = text;
+
+  feed.prepend(card);
 }
 
 function getAvailablePeople() {
@@ -202,20 +223,15 @@ async function saveToFirebase() {
 }
 
 function drawTeam() {
+
   if (!data) return;
+
+  moveUI(); // 🔥 SHIFT LAYOUT ON FIRST DRAW
 
   const peopleLeft = getAvailablePeople();
 
   if (peopleLeft.length === 0) {
-
-    if (round === 1) {
-      round = 2;
-      document.getElementById("result").innerHTML =
-        "🔁 Starting Round 2...";
-      return;
-    }
-
-    document.getElementById("result").innerHTML = "🎉 Draw complete!";
+    round++;
     return;
   }
 
@@ -242,8 +258,7 @@ function drawTeam() {
     const tempPerson = peopleLeft[Math.floor(Math.random() * peopleLeft.length)];
     const tempTeam = remainingTeams[Math.floor(Math.random() * remainingTeams.length)];
 
-    resultBox.innerHTML =
-      `🎲 ${tempPerson.name} → ${tempTeam.name}`;
+    resultBox.innerHTML = `🎲 ${tempPerson.name} → ${tempTeam.name}`;
 
     elapsed += intervalTime;
 
@@ -254,13 +269,12 @@ function drawTeam() {
 
         person.teams.push(team.name);
 
-        resultBox.innerHTML =
-          `<span style="font-size:28px">${getFlag(team.name)}</span> ${person.name} → ${team.name}`;
+        const final = `⚽ ${person.name} → ${team.name}`;
 
+        resultBox.innerHTML = final;
         resultBox.classList.add("landed");
 
-        document.getElementById("remaining").innerHTML =
-          `Round ${round}: ${getAvailablePeople().length} people still need teams`;
+        addToFeed(final);
 
         await saveToFirebase();
 

@@ -54,14 +54,6 @@
       font-size: 14px;
       opacity: 0.8;
     }
-
-    .flag {
-      width: 28px;
-      height: 20px;
-      vertical-align: middle;
-      margin-right: 10px;
-      border-radius: 3px;
-    }
   </style>
 </head>
 
@@ -78,70 +70,70 @@
 
 <script>
 let data = null;
+let round = 1;
 
 async function init() {
   const res = await fetch("./teams.json");
   data = await res.json();
 }
 
-// REAL FLAGS (stable image source)
 function getFlag(team) {
-  const map = {
-    "Argentina": "https://flagcdn.com/w40/ar.png",
-    "Brazil": "https://flagcdn.com/w40/br.png",
-    "France": "https://flagcdn.com/w40/fr.png",
-    "England": "https://flagcdn.com/w40/gb-eng.png",
-    "Spain": "https://flagcdn.com/w40/es.png",
-    "Portugal": "https://flagcdn.com/w40/pt.png",
-    "Germany": "https://flagcdn.com/w40/de.png",
-    "Netherlands": "https://flagcdn.com/w40/nl.png",
-    "Italy": "https://flagcdn.com/w40/it.png",
-    "Belgium": "https://flagcdn.com/w40/be.png",
-    "Croatia": "https://flagcdn.com/w40/hr.png",
-    "Uruguay": "https://flagcdn.com/w40/uy.png",
-    "USA": "https://flagcdn.com/w40/us.png",
-    "Mexico": "https://flagcdn.com/w40/mx.png",
-    "Canada": "https://flagcdn.com/w40/ca.png",
-    "Japan": "https://flagcdn.com/w40/jp.png",
-    "South Korea": "https://flagcdn.com/w40/kr.png",
-    "Morocco": "https://flagcdn.com/w40/ma.png",
-    "Senegal": "https://flagcdn.com/w40/sn.png",
-    "Switzerland": "https://flagcdn.com/w40/ch.png",
-    "Denmark": "https://flagcdn.com/w40/dk.png",
-    "Austria": "https://flagcdn.com/w40/at.png",
-    "Poland": "https://flagcdn.com/w40/pl.png",
-    "Wales": "https://flagcdn.com/w40/gb-wls.png",
-    "Scotland": "https://flagcdn.com/w40/gb-sct.png",
-    "Serbia": "https://flagcdn.com/w40/rs.png",
-    "Ukraine": "https://flagcdn.com/w40/ua.png",
-    "Turkey": "https://flagcdn.com/w40/tr.png",
-    "Nigeria": "https://flagcdn.com/w40/ng.png",
-    "Egypt": "https://flagcdn.com/w40/eg.png",
-    "Ghana": "https://flagcdn.com/w40/gh.png",
-    "Cameroon": "https://flagcdn.com/w40/cm.png",
-    "Algeria": "https://flagcdn.com/w40/dz.png",
-    "Tunisia": "https://flagcdn.com/w40/tn.png",
-    "Ecuador": "https://flagcdn.com/w40/ec.png",
-    "Colombia": "https://flagcdn.com/w40/co.png",
-    "Chile": "https://flagcdn.com/w40/cl.png",
-    "Peru": "https://flagcdn.com/w40/pe.png",
-    "Paraguay": "https://flagcdn.com/w40/py.png",
-    "Iran": "https://flagcdn.com/w40/ir.png",
-    "Saudi Arabia": "https://flagcdn.com/w40/sa.png",
-    "Qatar": "https://flagcdn.com/w40/qa.png",
-    "Australia": "https://flagcdn.com/w40/au.png",
-    "New Zealand": "https://flagcdn.com/w40/nz.png",
-    "Costa Rica": "https://flagcdn.com/w40/cr.png",
-    "Panama": "https://flagcdn.com/w40/pa.png",
-    "Honduras": "https://flagcdn.com/w40/hn.png",
-    "Ivory Coast": "https://flagcdn.com/w40/ci.png"
+  const flags = {
+    "Argentina": "🇦🇷",
+    "Brazil": "🇧🇷",
+    "France": "🇫🇷",
+    "England": "🏴",
+    "Spain": "🇪🇸",
+    "Portugal": "🇵🇹",
+    "Germany": "🇩🇪",
+    "Netherlands": "🇳🇱",
+    "Italy": "🇮🇹",
+    "Belgium": "🇧🇪",
+    "Croatia": "🇭🇷",
+    "Uruguay": "🇺🇾",
+    "USA": "🇺🇸",
+    "Mexico": "🇲🇽",
+    "Canada": "🇨🇦",
+    "Japan": "🇯🇵",
+    "South Korea": "🇰🇷",
+    "Morocco": "🇲🇦",
+    "Senegal": "🇸🇳",
+    "Switzerland": "🇨🇭",
+    "Denmark": "🇩🇰",
+    "Austria": "🇦🇹",
+    "Poland": "🇵🇱",
+    "Wales": "🏴",
+    "Scotland": "🏴",
+    "Serbia": "🇷🇸",
+    "Ukraine": "🇺🇦",
+    "Turkey": "🇹🇷",
+    "Nigeria": "🇳🇬",
+    "Egypt": "🇪🇬",
+    "Ghana": "🇬🇭",
+    "Cameroon": "🇨🇲",
+    "Algeria": "🇩🇿",
+    "Tunisia": "🇹🇳",
+    "Ecuador": "🇪🇨",
+    "Colombia": "🇨🇴",
+    "Chile": "🇨🇱",
+    "Peru": "🇵🇪",
+    "Paraguay": "🇵🇾",
+    "Iran": "🇮🇷",
+    "Saudi Arabia": "🇸🇦",
+    "Qatar": "🇶🇦",
+    "Australia": "🇦🇺",
+    "New Zealand": "🇳🇿",
+    "Costa Rica": "🇨🇷",
+    "Panama": "🇵🇦",
+    "Honduras": "🇭🇳",
+    "Ivory Coast": "🇨🇮"
   };
 
-  return map[team] || "";
+  return flags[team] || "🌍";
 }
 
 function getAvailablePeople() {
-  return data.people.filter(p => p.teams.length < 2);
+  return data.people.filter(p => p.teams.length < round);
 }
 
 function drawTeam() {
@@ -150,6 +142,14 @@ function drawTeam() {
   const peopleLeft = getAvailablePeople();
 
   if (peopleLeft.length === 0) {
+
+    if (round === 1) {
+      round = 2;
+      document.getElementById("result").innerHTML =
+        "🔁 Starting Round 2...";
+      return;
+    }
+
     document.getElementById("result").innerHTML = "🎉 Draw complete!";
     return;
   }
@@ -167,10 +167,10 @@ function drawTeam() {
   person.teams.push(team.name);
 
   document.getElementById("result").innerHTML =
-    `<img class="flag" src="${getFlag(team.name)}"> ${person.name} → ${team.name}`;
+    `${getFlag(team.name)} ${person.name} → ${team.name} (Round ${round})`;
 
   document.getElementById("remaining").innerHTML =
-    `${getAvailablePeople().length} people still need teams`;
+    `Round ${round}: ${getAvailablePeople().length} people still need teams`;
 }
 
 init();

@@ -89,9 +89,11 @@
       padding: 12px;
       margin-bottom: 10px;
       border-radius: 10px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+    }
+
+    #adminPanel {
+      display: none;
+      margin-top: 15px;
     }
   </style>
 </head>
@@ -100,14 +102,22 @@
 
 <div class="wrapper">
 
-  <div class="left" id="leftPanel">
+  <div class="left">
     <div class="container">
+
       <h1>⚽ Sweepstake Draw</h1>
 
-      <button onclick="startDraw()">Start Draw</button>
+      <input type="password" id="adminPass" placeholder="Admin password">
+      <button onclick="unlockAdmin()">Unlock</button>
+
+      <div id="adminPanel">
+        <button onclick="startDraw()">Start Draw</button>
+        <button onclick="togglePause()" id="pauseBtn">Pause</button>
+      </div>
 
       <div id="result" class="result"></div>
       <div id="bigFlag"></div>
+
     </div>
   </div>
 
@@ -120,6 +130,27 @@
 <script>
 let data;
 let running = false;
+let paused = false;
+
+const ADMIN_PASSWORD = 'TTWCSweep2026-!"£';
+
+/* 🔓 ADMIN */
+function unlockAdmin(){
+  const input = document.getElementById("adminPass").value;
+  if(input === ADMIN_PASSWORD){
+    document.getElementById("adminPanel").style.display = "block";
+    alert("Admin unlocked");
+  } else {
+    alert("Wrong password");
+  }
+}
+
+/* ⏸ PAUSE */
+function togglePause(){
+  paused = !paused;
+  document.getElementById("pauseBtn").innerText =
+    paused ? "Resume" : "Pause";
+}
 
 /* 🔊 AUDIO */
 let ctx;
@@ -151,7 +182,7 @@ function playAww(){
   setTimeout(()=>play(200),120);
 }
 
-/* 🧠 TIER SYSTEM (ONLY SOURCE OF TRUTH) */
+/* 🧠 TIER */
 function getTier(teamName){
   const t = data.teams.find(x => x.name === teamName);
   return t ? t.tier : "mid";
@@ -171,6 +202,11 @@ function startDraw(){
 
   function step(){
     if(i >= people.length) return;
+
+    if(paused){
+      setTimeout(step, 500);
+      return;
+    }
 
     const person = people[i];
 
@@ -198,7 +234,6 @@ function startDraw(){
 
     document.getElementById("feed").prepend(div);
 
-    /* 🔊 FIXED SOUND LOGIC */
     if(tier === "elite") playCheer();
     else if(tier === "low") playAww();
     else playDing();
@@ -210,7 +245,7 @@ function startDraw(){
   step();
 }
 
-/* 📦 LOAD JSON */
+/* 📦 LOAD */
 fetch("teams.json")
   .then(r => r.json())
   .then(j => data = j);

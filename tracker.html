@@ -1,112 +1,45 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Live Tracker</title>
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #121212;
-      color: white;
-      text-align: center;
-      padding: 30px;
-    }
-
-    h1 {
-      color: #00ff9d;
-    }
-
-    a {
-      color: #00ff9d;
-      text-decoration: none;
-      margin-bottom: 20px;
-      display: inline-block;
-    }
-
-    table {
-      margin: auto;
-      border-collapse: collapse;
-      width: 90%;
-      margin-top: 30px;
-    }
-
-    th, td {
-      border: 1px solid #444;
-      padding: 12px;
-    }
-
-    th {
-      background: #1f1f1f;
-    }
-
-    tr:nth-child(even) {
-      background: #1a1a1a;
-    }
-
-    .leader {
-      background: #3a0000 !important;
-      font-weight: bold;
-    }
-  </style>
+  <title>Tracker</title>
 </head>
 
 <body>
 
-  <h1>📊 Live Goals Conceded Tracker</h1>
+<h1>Team Tracker</h1>
 
-  <a href="index.html">← Back to Draw Page</a>
+<button onclick="load()">Refresh</button>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Team</th>
-        <th>Owner</th>
-        <th>Goals Conceded</th>
-      </tr>
-    </thead>
+<div id="output"></div>
 
-    <tbody id="tableBody">
-    </tbody>
-  </table>
+<script>
+let data = null;
 
-  <script>
+async function load() {
+  const res = await fetch("./teams.json");
+  data = await res.json();
 
-    async function loadTeams() {
+  let html = "";
 
-      const response = await fetch("./teams.json");
-      const teams = await response.json();
+  data.people.forEach(p => {
+    html += "<h3>" + p.name + "</h3>";
 
-      teams.sort((a, b) => b.goalsConceded - a.goalsConceded);
-
-      const tableBody = document.getElementById("tableBody");
-
-      tableBody.innerHTML = "";
-
-      teams.forEach((team, index) => {
-
-        const row = document.createElement("tr");
-
-        if (index === 0) {
-          row.classList.add("leader");
-        }
-
-        row.innerHTML = `
-          <td>${team.team}</td>
-          <td>${team.owner || "-"}</td>
-          <td>${team.goalsConceded}</td>
-        `;
-
-        tableBody.appendChild(row);
-
+    if (p.teams.length === 0) {
+      html += "<p>No teams yet</p>";
+    } else {
+      html += "<ul>";
+      p.teams.forEach(t => {
+        html += "<li>" + t + "</li>";
       });
-
+      html += "</ul>";
     }
+  });
 
-    loadTeams();
+  document.getElementById("output").innerHTML = html;
+}
 
-  </script>
+load();
+</script>
 
 </body>
 </html>

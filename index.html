@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>World Cup Sweepstake</title>
+  <title>World Cup Draw</title>
 
   <style>
     body {
@@ -18,54 +18,106 @@
       color: #00ff9d;
     }
 
-    table {
-      margin: auto;
-      border-collapse: collapse;
-      width: 80%;
+    button {
+      background: #00ff9d;
+      border: none;
+      padding: 15px 30px;
+      font-size: 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    #result {
+      margin-top: 40px;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    #remaining {
       margin-top: 30px;
+      color: #bbbbbb;
     }
 
-    th, td {
-      border: 1px solid #444;
-      padding: 12px;
-    }
-
-    th {
-      background: #1f1f1f;
-    }
-
-    tr:nth-child(even) {
-      background: #1a1a1a;
+    a {
+      color: #00ff9d;
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 30px;
     }
   </style>
 </head>
 
 <body>
 
-  <h1>🏆 World Cup Sweepstake 2026</h1>
+  <h1>🏆 World Cup Sweepstake Draw</h1>
 
-  <p>Live goals conceded tracker</p>
+  <button onclick="drawTeam()">Draw Team</button>
 
-  <table>
-    <tr>
-      <th>Team</th>
-      <th>Owner</th>
-      <th>Goals Conceded</th>
-    </tr>
+  <div id="result">
+    Click the button to begin
+  </div>
 
-    <tr>
-      <td>Brazil</td>
-      <td>Liam</td>
-      <td>2</td>
-    </tr>
+  <div id="remaining"></div>
 
-    <tr>
-      <td>Spain</td>
-      <td>Sarah</td>
-      <td>5</td>
-    </tr>
+  <a href="tracker.html">Go to Live Tracker →</a>
 
-  </table>
+  <script>
+
+    const teams = [
+      "Brazil",
+      "Spain",
+      "Germany",
+      "France",
+      "Argentina",
+      "England"
+    ];
+
+    const people = [
+      "Liam",
+      "Sarah",
+      "Tom",
+      "Emma",
+      "Chris",
+      "Dan"
+    ];
+
+    let availableTeams = [...teams];
+    let availablePeople = [...people];
+
+    function drawTeam() {
+
+      if (availableTeams.length === 0 || availablePeople.length === 0) {
+        document.getElementById("result").innerHTML =
+          "✅ Draw complete!";
+        return;
+      }
+
+      const randomTeamIndex =
+        Math.floor(Math.random() * availableTeams.length);
+
+      const randomPersonIndex =
+        Math.floor(Math.random() * availablePeople.length);
+
+      const selectedTeam =
+        availableTeams.splice(randomTeamIndex, 1)[0];
+
+      const selectedPerson =
+        availablePeople.splice(randomPersonIndex, 1)[0];
+
+      document.getElementById("result").innerHTML =
+        `${selectedPerson} gets <br><br> 🌍 ${selectedTeam}`;
+
+      document.getElementById("remaining").innerHTML =
+        `${availableTeams.length} teams remaining`;
+
+    }
+
+  </script>
 
 </body>
 </html>

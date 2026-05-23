@@ -1,27 +1,29 @@
-[
-  {
-    "team": "Brazil",
-    "owner": "",
-    "goalsConceded": 0
-  },
-  {
-    "team": "Spain",
-    "owner": "",
-    "goalsConceded": 0
-  },
-  {
-    "team": "Germany",
-    "owner": "",
-    "goalsConceded": 0
-  },
-  {
-    "team": "France",
-    "owner": "",
-    "goalsConceded": 0
-  },
-  {
-    "team": "England",
-    "owner": "",
-    "goalsConceded": 0
-  }
-]
+{
+  "people": [
+    { "name": "Scott Taylor", "teams": [] },
+    { "name": "Rhys Lowe", "teams": [] },
+    { "name": "Adrian Compton", "teams": [] },
+    { "name": "Jodie Rogers", "teams": [] },
+    { "name": "Josh Goatley", "teams": [] },
+    { "name": "Steven Morgan", "teams": [] },
+    { "name": "James Mason", "teams": [] },
+    { "name": "Andrew Oakley", "teams": [] },
+    { "name": "Liam Keefe", "teams": [] },
+    { "name": "Morgan Cooksey", "teams": [] },
+    { "name": "Pat Gandy", "teams": [] },
+    { "name": "Jon Edwards", "teams": [] },
+    { "name": "Daniel Owen", "teams": [] },
+    { "name": "Nick Tagg", "teams": [] },
+    { "name": "Charity", "teams": [] },
+    { "name": "Kath Dawes", "teams": [] },
+    { "name": "Stephanie Webber", "teams": [] },
+    { "name": "Rachel Morgan", "teams": [] },
+    { "name": "Mike Mimnagh", "teams": [] },
+    { "name": "Nick Sloper", "teams": [] },
+    { "name": "Matthew Jones", "teams": [] },
+    { "name": "Robert Lucey", "teams": [] },
+    { "name": "Holly Chatman", "teams": [] },
+    { "name": "Claire Branigan", "teams": [] }
+  ],
+  "teams": []
+}

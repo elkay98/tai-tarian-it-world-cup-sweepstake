@@ -22,7 +22,6 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      transition: all 0.6s ease;
     }
 
     .container {
@@ -32,8 +31,6 @@
       border-radius: 20px;
       width: 320px;
     }
-
-    h1 { margin-bottom: 20px; }
 
     button {
       padding: 10px 16px;
@@ -79,6 +76,7 @@
 
     #adminPanel {
       display: none;
+      margin-top: 10px;
     }
   </style>
 </head>
@@ -118,7 +116,7 @@ let running = false;
 let paused = false;
 let ctx;
 
-/* 🔐 ADMIN */
+/* 🔐 ADMIN PASSWORD */
 const ADMIN_PASSWORD = 'TTWCSweep2026-!"£';
 
 function unlockAdmin(){
@@ -157,7 +155,6 @@ function play(freq){
   setTimeout(()=>o.stop(), 250);
 }
 
-/* sounds */
 function playDing(){ play(700); }
 function playCheer(){
   play(900);
@@ -174,6 +171,30 @@ function drumroll(){
   setTimeout(()=>play(140), 150);
   setTimeout(()=>play(120), 300);
 }
+
+/* 🏳️ FLAGS */
+const flags = {
+  "Argentina":"🇦🇷","Brazil":"🇧🇷","England":"🏴","France":"🇫🇷",
+  "Germany":"🇩🇪","Spain":"🇪🇸","Portugal":"🇵🇹","Netherlands":"🇳🇱",
+
+  "USA":"🇺🇸","Mexico":"🇲🇽","Canada":"🇨🇦",
+
+  "Belgium":"🇧🇪","Croatia":"🇭🇷","Switzerland":"🇨🇭","Denmark":"🇩🇰",
+  "Austria":"🇦🇹","Serbia":"🇷🇸","Ukraine":"🇺🇦","Turkey":"🇹🇷","Poland":"🇵🇱",
+
+  "Morocco":"🇲🇦","Senegal":"🇸🇳","Nigeria":"🇳🇬","Egypt":"🇪🇬",
+  "Ghana":"🇬🇭","Cameroon":"🇨🇲","Algeria":"🇩🇿","Ivory Coast":"🇨🇮",
+
+  "Japan":"🇯🇵","South Korea":"🇰🇷","Iran":"🇮🇷","Saudi Arabia":"🇸🇦",
+  "Qatar":"🇶🇦","Australia":"🇦🇺","Jordan":"🇯🇴","Uzbekistan":"🇺🇿","Iraq":"🇮🇶",
+
+  "Panama":"🇵🇦","Haiti":"🇭🇹","Curaçao":"🇨🇼","Cape Verde":"🇨🇻",
+  "DR Congo":"🇨🇩","Tunisia":"🇹🇳",
+
+  "Costa Rica":"🇨🇷","Honduras":"🇭🇳","Jamaica":"🇯🇲","El Salvador":"🇸🇻",
+
+  "New Zealand":"🇳🇿"
+};
 
 /* 🧠 TIER */
 function getTier(teamName){
@@ -210,32 +231,31 @@ function startDraw(){
 
     const tier = getTier(team);
 
-    /* 🎺 DRUMROLL BEFORE REVEAL */
     drumroll();
 
-    document.getElementById("result").innerText =
-      "Drawing...";
+    document.getElementById("result").innerText = "Drawing...";
 
     setTimeout(() => {
 
-      /* 🎬 REVEAL */
       person.team = team;
 
+      const flag = flags[team] || "🏳️";
+
       document.getElementById("result").innerText =
-        person.name + " → " + team;
+        person.name + " → " + flag + " " + team;
 
-      const flag = document.getElementById("bigFlag");
-      flag.innerText = "🏳️";
-      flag.classList.add("show");
+      const big = document.getElementById("bigFlag");
+      big.innerText = flag;
+      big.classList.add("show");
 
-      setTimeout(() => flag.classList.remove("show"), 1200);
+      setTimeout(() => big.classList.remove("show"), 1200);
 
       const div = document.createElement("div");
       div.className = "card";
-      div.innerText = person.name + " → " + team;
+      div.innerText = person.name + " → " + flag + " " + team;
+
       document.getElementById("feed").prepend(div);
 
-      /* 🔊 SOUND AFTER REVEAL */
       if(tier === "elite") playCheer();
       else if(tier === "low") playAww();
       else playDing();
@@ -244,14 +264,13 @@ function startDraw(){
 
     i++;
 
-    /* ⏱ delay between picks */
     setTimeout(step, tier === "elite" ? 3500 : 2500);
   }
 
   step();
 }
 
-/* 📦 LOAD DATA */
+/* 📦 LOAD */
 fetch("teams.json")
   .then(r => r.json())
   .then(j => data = j);

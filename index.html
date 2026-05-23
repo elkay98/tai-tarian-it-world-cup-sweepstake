@@ -25,12 +25,6 @@
       transition: all 0.6s ease;
     }
 
-    .left.moved {
-      justify-content: flex-start;
-      align-items: flex-start;
-      padding: 40px;
-    }
-
     .container {
       text-align: center;
       background: rgba(255,255,255,0.05);
@@ -39,15 +33,7 @@
       width: 320px;
     }
 
-    .left.moved .container {
-      width: 100%;
-      text-align: left;
-      padding: 20px;
-    }
-
-    h1 {
-      margin-bottom: 20px;
-    }
+    h1 { margin-bottom: 20px; }
 
     button {
       padding: 10px 16px;
@@ -93,7 +79,6 @@
 
     #adminPanel {
       display: none;
-      margin-top: 15px;
     }
   </style>
 </head>
@@ -131,10 +116,11 @@
 let data;
 let running = false;
 let paused = false;
+let ctx;
 
+/* 🔐 ADMIN */
 const ADMIN_PASSWORD = 'TTWCSweep2026-!"£';
 
-/* 🔓 ADMIN */
 function unlockAdmin(){
   const input = document.getElementById("adminPass").value;
   if(input === ADMIN_PASSWORD){
@@ -153,7 +139,6 @@ function togglePause(){
 }
 
 /* 🔊 AUDIO */
-let ctx;
 function initAudio(){
   ctx = new (window.AudioContext || window.webkitAudioContext)();
 }
@@ -166,20 +151,28 @@ function play(freq){
   g.connect(ctx.destination);
 
   o.frequency.value = freq;
-  g.gain.value = 0.1;
+  g.gain.value = 0.12;
 
   o.start();
-  setTimeout(()=>o.stop(), 200);
+  setTimeout(()=>o.stop(), 250);
 }
 
+/* sounds */
 function playDing(){ play(700); }
 function playCheer(){
   play(900);
-  setTimeout(()=>play(1200),120);
+  setTimeout(()=>play(1200), 120);
 }
 function playAww(){
   play(300);
-  setTimeout(()=>play(200),120);
+  setTimeout(()=>play(200), 120);
+}
+
+/* 🎺 DRUMROLL */
+function drumroll(){
+  play(120);
+  setTimeout(()=>play(140), 150);
+  setTimeout(()=>play(120), 300);
 }
 
 /* 🧠 TIER */
@@ -217,35 +210,48 @@ function startDraw(){
 
     const tier = getTier(team);
 
-    person.team = team;
+    /* 🎺 DRUMROLL BEFORE REVEAL */
+    drumroll();
 
     document.getElementById("result").innerText =
-      person.name + " → " + team;
+      "Drawing...";
 
-    const flag = document.getElementById("bigFlag");
-    flag.innerText = "🏳️";
-    flag.classList.add("show");
+    setTimeout(() => {
 
-    setTimeout(() => flag.classList.remove("show"), 1200);
+      /* 🎬 REVEAL */
+      person.team = team;
 
-    const div = document.createElement("div");
-    div.className = "card";
-    div.innerText = person.name + " → " + team;
+      document.getElementById("result").innerText =
+        person.name + " → " + team;
 
-    document.getElementById("feed").prepend(div);
+      const flag = document.getElementById("bigFlag");
+      flag.innerText = "🏳️";
+      flag.classList.add("show");
 
-    if(tier === "elite") playCheer();
-    else if(tier === "low") playAww();
-    else playDing();
+      setTimeout(() => flag.classList.remove("show"), 1200);
+
+      const div = document.createElement("div");
+      div.className = "card";
+      div.innerText = person.name + " → " + team;
+      document.getElementById("feed").prepend(div);
+
+      /* 🔊 SOUND AFTER REVEAL */
+      if(tier === "elite") playCheer();
+      else if(tier === "low") playAww();
+      else playDing();
+
+    }, tier === "elite" ? 2500 : 1500);
 
     i++;
-    setTimeout(step, 2000);
+
+    /* ⏱ delay between picks */
+    setTimeout(step, tier === "elite" ? 3500 : 2500);
   }
 
   step();
 }
 
-/* 📦 LOAD */
+/* 📦 LOAD DATA */
 fetch("teams.json")
   .then(r => r.json())
   .then(j => data = j);

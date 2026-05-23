@@ -174,14 +174,14 @@
 </div>
 
 <script>
-/* 🔊 WEB AUDIO ENGINE (NO FILES, NO CDN) */
+/* 🔊 WEB AUDIO ENGINE */
 let audioCtx;
 
 function initAudio() {
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 }
 
-function playSound(freq, duration = 0.3) {
+function playSound(freq, duration = 0.25) {
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
 
@@ -191,17 +191,38 @@ function playSound(freq, duration = 0.3) {
   osc.frequency.value = freq;
   osc.type = "sine";
 
-  gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+  gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
   gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
 
   osc.start();
   osc.stop(audioCtx.currentTime + duration);
 }
 
-function playDing() { playSound(880, 0.2); }
-function playCheer() { playSound(520, 0.4); }
-function playAww() { playSound(220, 0.4); }
-function playDrum() { playSound(120, 0.6); }
+/* 🧠 TIERED SOUND SYSTEM */
+function playDing() {
+  // medium / neutral
+  playSound(700, 0.15);
+}
+
+function playCheer() {
+  // BIG teams = layered rising excitement
+  playSound(900, 0.12);
+  setTimeout(() => playSound(1200, 0.18), 120);
+  setTimeout(() => playSound(1500, 0.25), 240);
+}
+
+function playAww() {
+  // bad teams = falling sad tone
+  playSound(300, 0.25);
+  setTimeout(() => playSound(200, 0.35), 120);
+}
+
+function playDrum() {
+  // heartbeat-style suspense
+  playSound(110, 0.15);
+  setTimeout(() => playSound(140, 0.15), 120);
+  setTimeout(() => playSound(90, 0.2), 240);
+}
 </script>
 
 <script>

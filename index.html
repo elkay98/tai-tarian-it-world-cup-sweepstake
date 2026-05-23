@@ -2,399 +2,97 @@
 <html>
 <head>
   <title>World Cup Sweepstake</title>
-
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #0f172a, #1e293b);
-      color: white;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    .wrapper {
-      display: flex;
-      height: 100vh;
-    }
-
-    .left {
-      width: 40%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      transition: all 0.6s ease;
-    }
-
-    .left.moved {
-      justify-content: flex-start;
-      align-items: flex-start;
-      padding: 40px;
-    }
-
-    .container {
-      text-align: center;
-      background: rgba(255, 255, 255, 0.05);
-      padding: 40px;
-      border-radius: 20px;
-      width: 320px;
-    }
-
-    .left.moved .container {
-      width: 100%;
-      text-align: left;
-      padding: 20px;
-    }
-
-    h1 {
-      margin-bottom: 20px;
-      font-size: 22px;
-    }
-
-    button {
-      padding: 10px 16px;
-      font-size: 14px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      background: #3b82f6;
-      color: white;
-      margin: 5px;
-    }
-
-    .result {
-      margin-top: 20px;
-      font-size: 20px;
-      min-height: 60px;
-    }
-
-    .remaining {
-      margin-top: 10px;
-      font-size: 14px;
-      opacity: 0.8;
-    }
-
-    #bigFlag {
-      font-size: 90px;
-      margin-top: 25px;
-      opacity: 0;
-      transform: translateY(20px) scale(0.8);
-      transition: all 0.6s ease;
-      text-align: center;
-    }
-
-    #bigFlag.show {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-
-    #progressText {
-      margin-top: 12px;
-      font-size: 13px;
-      opacity: 0.85;
-    }
-
-    .progress-wrapper {
-      width: 100%;
-      height: 10px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 10px;
-      margin-top: 10px;
-      overflow: hidden;
-    }
-
-    #progressBar {
-      height: 100%;
-      width: 0%;
-      background: #3b82f6;
-      transition: width 0.4s ease;
-    }
-
-    .right {
-      width: 60%;
-      padding: 40px;
-      overflow-y: auto;
-    }
-
-    .feed-title {
-      font-size: 18px;
-      margin-bottom: 15px;
-      opacity: 0.8;
-    }
-
-    .feed {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .card {
-      background: rgba(255,255,255,0.06);
-      padding: 15px;
-      border-radius: 12px;
-      animation: pop 0.3s ease;
-    }
-
-    @keyframes pop {
-      from { transform: scale(0.95); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
+    body { font-family: Arial; background:#111; color:white; margin:0; }
+    .wrap { display:flex; height:100vh; }
+    .left { width:40%; padding:40px; }
+    .right { width:60%; padding:40px; overflow:auto; }
+    .card { background:#222; padding:10px; margin:5px 0; border-radius:8px; }
+    button { padding:10px; margin:5px; cursor:pointer; }
   </style>
 </head>
-
 <body>
 
-<div class="wrapper">
-
-  <div class="left" id="leftPanel">
-    <div class="container">
-      <h1>⚽ Sweepstake Draw</h1>
-
-      <button onclick="startDraw()" id="drawBtn">Start Draw</button>
-      <button onclick="togglePause()" id="pauseBtn" disabled>Pause</button>
-
-      <div id="result" class="result"></div>
-      <div id="remaining" class="remaining"></div>
-
-      <div id="bigFlag"></div>
-
-      <div id="progressText"></div>
-      <div class="progress-wrapper">
-        <div id="progressBar"></div>
-      </div>
-
-    </div>
+<div class="wrap">
+  <div class="left">
+    <h1>World Cup Sweepstake</h1>
+    <button onclick="startDraw()">Start Draw</button>
+    <div id="current"></div>
   </div>
 
   <div class="right">
-    <div class="feed-title">Live Results</div>
-    <div id="feed" class="feed"></div>
+    <div id="feed"></div>
   </div>
-
 </div>
 
 <script>
-/* 🔊 WEB AUDIO ENGINE */
-let audioCtx;
-
-function initAudio() {
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-}
-
-function playSound(freq, duration = 0.25) {
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-
-  osc.frequency.value = freq;
-  osc.type = "sine";
-
-  gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-
-  osc.start();
-  osc.stop(audioCtx.currentTime + duration);
-}
-
-/* 🧠 TIERED SOUND SYSTEM */
-function playDing() {
-  // medium / neutral
-  playSound(700, 0.15);
-}
-
-function playCheer() {
-  // BIG teams = layered rising excitement
-  playSound(900, 0.12);
-  setTimeout(() => playSound(1200, 0.18), 120);
-  setTimeout(() => playSound(1500, 0.25), 240);
-}
-
-function playAww() {
-  // bad teams = falling sad tone
-  playSound(300, 0.25);
-  setTimeout(() => playSound(200, 0.35), 120);
-}
-
-function playDrum() {
-  // heartbeat-style suspense
-  playSound(110, 0.15);
-  setTimeout(() => playSound(140, 0.15), 120);
-  setTimeout(() => playSound(90, 0.2), 240);
-}
-</script>
-
-<script>
-
-let data = null;
+let data;
 let running = false;
-let paused = false;
 
-async function init() {
-  const res = await fetch("./teams.json");
-  data = await res.json();
-
-  document.getElementById("drawBtn").disabled = true;
-  checkAdmin();
+/* 🔊 SIMPLE AUDIO */
+function play(freq){
+  const ctx = new (window.AudioContext||window.webkitAudioContext)();
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.connect(g); g.connect(ctx.destination);
+  o.frequency.value = freq;
+  g.gain.value = 0.1;
+  o.start();
+  setTimeout(()=>o.stop(),200);
 }
 
-function checkAdmin() {
-  const pass = prompt("Enter admin password:");
-  if (pass === "TTWCSweep2026-!\"£") {
-    document.getElementById("drawBtn").disabled = false;
-  }
+/* 🧠 TIER CHECK (ONLY SOURCE OF TRUTH) */
+function getTier(team){
+  const t = data.teams.find(x=>x.name===team);
+  return t ? t.tier : "mid";
 }
 
-function moveUI() {
-  document.getElementById("leftPanel").classList.add("moved");
-}
-
-function togglePause() {
-  paused = !paused;
-  document.getElementById("pauseBtn").innerText = paused ? "Resume" : "Pause";
-}
-
-function waitWhilePaused() {
-  return new Promise(res => {
-    const i = setInterval(() => {
-      if (!paused) { clearInterval(i); res(); }
-    }, 200);
-  });
-}
-
-function getFlag(team) {
-  const flags = {
-    "France":"🇫🇷","Brazil":"🇧🇷","Germany":"🇩🇪","Spain":"🇪🇸",
-    "England":"🏴","Portugal":"🇵🇹","Argentina":"🇦🇷",
-    "Netherlands":"🇳🇱","Belgium":"🇧🇪"
-  };
-  return flags[team] || "🌍";
-}
-
-function isBig(team) {
-  return ["France","Brazil","Germany","Spain","England","Portugal","Argentina","Netherlands","Belgium"].includes(team);
-}
-
-function isBad(team) {
-  return ["Haiti","Uzbekistan","Congo","Panama","Curacao","Cape Verde"].includes(team);
-}
-
-function getAvailablePeople() {
-  return data.people.filter(p => p.teams.length < 2);
-}
-
-function addToFeed(text) {
-  const feed = document.getElementById("feed");
-  const div = document.createElement("div");
-  div.className = "card";
-  div.innerHTML = text;
-  feed.prepend(div);
-}
-
-function showFlag(team) {
-  const el = document.getElementById("bigFlag");
-  el.innerHTML = getFlag(team);
-  el.classList.remove("show");
-  void el.offsetWidth;
-  el.classList.add("show");
-}
-
-function updateProgress() {
-  const total = data.people.length * 2;
-  const assigned = data.people.reduce((s,p)=>s+p.teams.length,0);
-  const pct = (assigned/total)*100;
-
-  document.getElementById("progressText").innerText =
-    `${assigned} / ${total} teams assigned`;
-
-  document.getElementById("progressBar").style.width = pct + "%";
-}
-
-function unlockAudio() {
-  if (!audioCtx) initAudio();
-  playDrum();
-}
-
-async function startDraw() {
-
-  if (running) return;
+/* ⚽ DRAW */
+function startDraw(){
+  if(running) return;
   running = true;
 
-  paused = false;
-  document.getElementById("pauseBtn").disabled = false;
+  let people = [...data.people];
+  let teams = [...data.teams.map(t=>t.name)];
 
-  moveUI();
+  let i = 0;
 
-  unlockAudio();
+  function step(){
+    if(i>=people.length) return;
 
-  const result = document.getElementById("result");
+    const person = people[i];
+    const team = teams.splice(Math.floor(Math.random()*teams.length),1)[0];
 
-  while (true) {
+    const tier = getTier(team);
 
-    await waitWhilePaused();
+    person.team = team;
 
-    const peopleLeft = getAvailablePeople();
-    if (!peopleLeft.length) break;
+    document.getElementById("current").innerText =
+      person.name + " → " + team;
 
-    const person = peopleLeft[Math.floor(Math.random()*peopleLeft.length)];
+    const div = document.createElement("div");
+    div.className="card";
+    div.innerText = person.name + " → " + team;
+    document.getElementById("feed").prepend(div);
 
-    const assigned = data.people.flatMap(p=>p.teams);
+    /* 🔊 SOUND FIX (NOW USES TIER ONLY) */
+    if(tier==="elite") play(900);
+    else if(tier==="low") play(300);
+    else play(600);
 
-    const remaining = data.teams.filter(t=>!assigned.includes(t.name));
-
-    const team = remaining[Math.floor(Math.random()*remaining.length)];
-
-    let t = 0;
-    const duration = 1200;
-
-    await new Promise(res => {
-
-      const i = setInterval(() => {
-
-        const p = peopleLeft[Math.floor(Math.random()*peopleLeft.length)];
-        const tm = remaining[Math.floor(Math.random()*remaining.length)];
-
-        result.innerHTML = `🎲 ${p.name} → ${tm.name}`;
-
-        t += 100;
-
-        if (t > duration) {
-          clearInterval(i);
-
-          person.teams.push(team.name);
-
-          const final = `${getFlag(team.name)} ${person.name} → ${team.name}`;
-
-          result.innerHTML = final;
-
-          addToFeed(final);
-          showFlag(team.name);
-          updateProgress();
-
-          if (isBig(team.name)) playCheer();
-          else if (isBad(team.name)) playAww();
-          else playDing();
-
-          playDrum();
-
-          res();
-        }
-
-      }, 100);
-
-    });
-
-    await waitWhilePaused();
-    await new Promise(r => setTimeout(r, 2000));
+    i++;
+    setTimeout(step, 1200);
   }
 
-  result.innerHTML = "🎉 Complete!";
-  running = false;
+  step();
 }
 
-init();
-
+/* 📦 LOAD JSON */
+fetch("teams.json")
+  .then(r=>r.json())
+  .then(j=>{
+    data=j;
+  });
 </script>
 
 </body>

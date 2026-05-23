@@ -54,6 +54,21 @@
       font-size: 14px;
       opacity: 0.8;
     }
+
+    .flag {
+      font-size: 28px;
+      margin-right: 10px;
+    }
+
+    .landed {
+      animation: pop 0.4s ease;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
   </style>
 </head>
 
@@ -69,7 +84,6 @@
 </div>
 
 <script>
-  console.log("NEW VERSION LOADED");
 let data = null;
 let round = 1;
 
@@ -165,13 +179,43 @@ function drawTeam() {
 
   const team = remainingTeams[Math.floor(Math.random() * remainingTeams.length)];
 
-  person.teams.push(team.name);
+  const resultBox = document.getElementById("result");
 
-  document.getElementById("result").innerHTML =
-    `${getFlag(team.name)} ${person.name} → ${team.name} (Round ${round})`;
+  let elapsed = 0;
+  const duration = 3200;
+  const intervalTime = 120;
 
-  document.getElementById("remaining").innerHTML =
-    `Round ${round}: ${getAvailablePeople().length} people still need teams`;
+  resultBox.classList.remove("landed");
+
+  const interval = setInterval(() => {
+
+    const tempPerson = peopleLeft[Math.floor(Math.random() * peopleLeft.length)];
+    const tempTeam = remainingTeams[Math.floor(Math.random() * remainingTeams.length)];
+
+    resultBox.innerHTML =
+      `🎲 ${tempPerson.name} → ${tempTeam.name}`;
+
+    elapsed += intervalTime;
+
+    if (elapsed > duration * 0.7) {
+      clearInterval(interval);
+
+      setTimeout(() => {
+
+        person.teams.push(team.name);
+
+        resultBox.innerHTML =
+          `<span class="flag">${getFlag(team.name)}</span> ${person.name} → ${team.name}`;
+
+        resultBox.classList.add("landed");
+
+        document.getElementById("remaining").innerHTML =
+          `Round ${round}: ${getAvailablePeople().length} people still need teams`;
+
+      }, 500);
+    }
+
+  }, intervalTime);
 }
 
 init();

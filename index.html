@@ -1,15 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>World Cup Sweepstake</title>
+</head>
+
+<body>
+
+  <h1>World Cup Sweepstake</h1>
+
+  <button onclick="drawTeam()">Draw</button>
+
+  <div id="result" style="margin-top:20px; font-size:20px;"></div>
+  <div id="remaining" style="margin-top:10px;"></div>
+
 <script>
 let data = null;
 
 async function init() {
-  try {
-    const res = await fetch("./teams.json");
-    data = await res.json();
-  } catch (err) {
-    document.getElementById("result").innerHTML =
-      "❌ Failed to load teams.json";
-    console.error(err);
-  }
+  const res = await fetch("./teams.json");
+  data = await res.json();
 }
 
 function getAvailablePeople() {
@@ -17,7 +26,10 @@ function getAvailablePeople() {
 }
 
 function drawTeam() {
-  if (!data) return;
+  if (!data) {
+    document.getElementById("result").innerHTML = "Loading data...";
+    return;
+  }
 
   const availablePeople = getAvailablePeople();
 
@@ -33,22 +45,20 @@ function drawTeam() {
     !data.people.some(p => p.teams.includes(t.name))
   );
 
-  if (remainingTeams.length === 0) {
-    document.getElementById("result").innerHTML = "⚠️ No teams left!";
-    return;
-  }
-
   const team =
     remainingTeams[Math.floor(Math.random() * remainingTeams.length)];
 
   person.teams.push(team.name);
 
   document.getElementById("result").innerHTML =
-    `${person.name} → ${team.name}`;
+    person.name + " → " + team.name;
 
   document.getElementById("remaining").innerHTML =
-    `${getAvailablePeople().length} people still need teams`;
+    getAvailablePeople().length + " people still need teams";
 }
 
 init();
 </script>
+
+</body>
+</html>

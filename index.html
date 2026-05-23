@@ -79,7 +79,7 @@
       margin-top: 10px;
     }
 
-    /* 📊 PROGRESS BAR (hidden by default) */
+    /* 📊 PROGRESS */
     #progressWrapper {
       margin-top: 12px;
       width: 100%;
@@ -87,7 +87,7 @@
       border-radius: 10px;
       height: 10px;
       overflow: hidden;
-      display: none;
+      display: block;
     }
 
     #progressBar {
@@ -101,7 +101,7 @@
       font-size: 12px;
       margin-top: 6px;
       opacity: 0.8;
-      display: none;
+      display: block;
     }
   </style>
 </head>
@@ -197,11 +197,6 @@ function togglePause(){
 }
 
 /* 📊 PROGRESS */
-function showProgress(){
-  document.getElementById("progressWrapper").style.display = "block";
-  document.getElementById("progressText").style.display = "block";
-}
-
 function updateProgress(){
   const percent = Math.round((completed / totalPeople) * 100);
 
@@ -210,34 +205,50 @@ function updateProgress(){
     percent + "% complete (" + completed + "/" + totalPeople + ")";
 }
 
-/* 🔊 AUDIO (FIXED VARIATION) */
+/* 🔊 AUDIO SYSTEM (FIXED VARIATION) */
 function initAudio(){
   ctx = new (window.AudioContext || window.webkitAudioContext)();
 }
 
-function play(freq, time=200){
+function tone(freq, duration=250, volume=0.12){
   const o = ctx.createOscillator();
   const g = ctx.createGain();
+
+  o.type = "sine";
 
   o.connect(g);
   g.connect(ctx.destination);
 
   o.frequency.value = freq;
-  g.gain.value = 0.12;
+  g.gain.value = volume;
 
   o.start();
-  setTimeout(()=>o.stop(), time);
+  setTimeout(()=>o.stop(), duration);
 }
 
-function playDing(){ play(700, 180); }
-function playCheer(){ play(950, 220); setTimeout(()=>play(1200,200),120); }
-function playAww(){ play(250, 260); setTimeout(()=>play(180,240),120); }
+/* 🟡 MID */
+function playDing(){
+  tone(660, 180, 0.10);
+}
 
-/* 🎺 DRUMROLL (richer) */
+/* 🟢 ELITE */
+function playCheer(){
+  tone(520, 220, 0.12);
+  setTimeout(()=>tone(780, 220, 0.12), 120);
+  setTimeout(()=>tone(1040, 300, 0.14), 240);
+}
+
+/* 🔴 LOW */
+function playAww(){
+  tone(420, 220, 0.12);
+  setTimeout(()=>tone(260, 260, 0.10), 140);
+}
+
+/* 🎺 DRUMROLL */
 function drumroll(){
-  play(110, 120);
-  setTimeout(()=>play(130,120),140);
-  setTimeout(()=>play(100,120),280);
+  tone(110, 120);
+  setTimeout(()=>tone(130,120),140);
+  setTimeout(()=>tone(100,120),280);
 }
 
 /* 🏳️ FLAGS */
@@ -260,8 +271,6 @@ const flags = {
 function startDraw(){
   if(running) return;
   running = true;
-
-  showProgress(); // 👈 ONLY SHOW WHEN DRAW STARTS
 
   if(!ctx) initAudio();
 
@@ -309,7 +318,17 @@ function startDraw(){
       completed++;
       updateProgress();
 
-      playDing();
+      if(team === "Argentina" || team === "Brazil" || team === "France" ||
+         team === "England" || team === "Spain" || team === "Germany" ||
+         team === "Portugal" || team === "Netherlands"){
+        playCheer();
+      }
+      else if(team === "Haiti" || team === "Cape Verde" || team === "Curaçao"){
+        playAww();
+      }
+      else {
+        playDing();
+      }
 
     }, 1500);
 

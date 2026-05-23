@@ -21,7 +21,7 @@
       padding: 40px;
       border-radius: 20px;
       box-shadow: 0 10px 40px rgba(0,0,0,0.4);
-      width: 400px;
+      width: 420px;
     }
 
     h1 {
@@ -57,12 +57,17 @@
       opacity: 0.8;
     }
 
+    .person {
+      color: #fbbf24;
+    }
+
     .team {
       color: #22c55e;
     }
 
-    .person {
-      color: #fbbf24;
+    .flag {
+      font-size: 26px;
+      margin-right: 8px;
     }
   </style>
 </head>
@@ -84,6 +89,62 @@ let data = null;
 async function init() {
   const res = await fetch("./teams.json");
   data = await res.json();
+}
+
+// simple flag map (emoji-based, no API needed)
+function getFlag(team) {
+  const flags = {
+    "Argentina": "🇦🇷",
+    "Brazil": "🇧🇷",
+    "France": "🇫🇷",
+    "England": "🏴",
+    "Spain": "🇪🇸",
+    "Portugal": "🇵🇹",
+    "Germany": "🇩🇪",
+    "Netherlands": "🇳🇱",
+    "Italy": "🇮🇹",
+    "Belgium": "🇧🇪",
+    "Croatia": "🇭🇷",
+    "Uruguay": "🇺🇾",
+    "USA": "🇺🇸",
+    "Mexico": "🇲🇽",
+    "Canada": "🇨🇦",
+    "Japan": "🇯🇵",
+    "South Korea": "🇰🇷",
+    "Morocco": "🇲🇦",
+    "Senegal": "🇸🇳",
+    "Switzerland": "🇨🇭",
+    "Denmark": "🇩🇰",
+    "Austria": "🇦🇹",
+    "Poland": "🇵🇱",
+    "Wales": "🏴",
+    "Scotland": "🏴",
+    "Serbia": "🇷🇸",
+    "Ukraine": "🇺🇦",
+    "Turkey": "🇹🇷",
+    "Nigeria": "🇳🇬",
+    "Egypt": "🇪🇬",
+    "Ghana": "🇬🇭",
+    "Cameroon": "🇨🇲",
+    "Algeria": "🇩🇿",
+    "Tunisia": "🇹🇳",
+    "Ecuador": "🇪🇨",
+    "Colombia": "🇨🇴",
+    "Chile": "🇨🇱",
+    "Peru": "🇵🇪",
+    "Paraguay": "🇵🇾",
+    "Iran": "🇮🇷",
+    "Saudi Arabia": "🇸🇦",
+    "Qatar": "🇶🇦",
+    "Australia": "🇦🇺",
+    "New Zealand": "🇳🇿",
+    "Costa Rica": "🇨🇷",
+    "Panama": "🇵🇦",
+    "Honduras": "🇭🇳",
+    "Ivory Coast": "🇨🇮"
+  };
+
+  return flags[team] || "🌍";
 }
 
 function getAvailablePeople() {
@@ -110,13 +171,19 @@ function drawTeam() {
 
   const team = remainingTeams[Math.floor(Math.random() * remainingTeams.length)];
 
-  person.teams.push(team.name);
+  document.getElementById("result").innerHTML = "🎲 Drawing...";
 
-  document.getElementById("result").innerHTML =
-    `<span class="person">${person.name}</span> gets <span class="team">${team.name}</span>`;
+  setTimeout(() => {
 
-  document.getElementById("remaining").innerHTML =
-    `${getAvailablePeople().length} people still need teams`;
+    person.teams.push(team.name);
+
+    document.getElementById("result").innerHTML =
+      `<span class="person">${person.name}</span> gets <br><span class="flag">${getFlag(team.name)}</span> <span class="team">${team.name}</span>`;
+
+    document.getElementById("remaining").innerHTML =
+      `${getAvailablePeople().length} people still need teams`;
+
+  }, 1200);
 }
 
 init();

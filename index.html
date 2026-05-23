@@ -52,13 +52,14 @@
     }
 
     button {
-      padding: 12px 20px;
-      font-size: 16px;
+      padding: 10px 16px;
+      font-size: 14px;
       border: none;
       border-radius: 10px;
       cursor: pointer;
       background: #3b82f6;
       color: white;
+      margin: 5px;
     }
 
     button:disabled {
@@ -75,6 +76,20 @@
       margin-top: 10px;
       font-size: 14px;
       opacity: 0.8;
+    }
+
+    #bigFlag {
+      font-size: 90px;
+      margin-top: 25px;
+      opacity: 0;
+      transform: translateY(20px) scale(0.8);
+      transition: all 0.6s ease;
+      text-align: center;
+    }
+
+    #bigFlag.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
     }
 
     .right {
@@ -107,16 +122,6 @@
       to { transform: scale(1); opacity: 1; }
     }
 
-    .landed {
-      animation: popBig 0.4s ease;
-    }
-
-    @keyframes popBig {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.08); }
-      100% { transform: scale(1); }
-    }
-
   </style>
 </head>
 
@@ -131,9 +136,13 @@
       <h1>⚽ Sweepstake Draw</h1>
 
       <button onclick="startDraw()" id="drawBtn">Start Draw</button>
+      <button onclick="togglePause()" id="pauseBtn" disabled>Pause</button>
 
       <div id="result" class="result"></div>
       <div id="remaining" class="remaining"></div>
+
+      <div id="bigFlag"></div>
+
     </div>
 
   </div>
@@ -152,7 +161,7 @@
 
 <script>
   const firebaseConfig = {
-    apiKey: "AIzaSyDgzUhc-cVSoPAejfxV-pHUC2jAZIxTAXw",
+    apiKey: "AIzaSyDgzUhc-cVSoPAejfxv-pHUC2jAZIxTAXw",
     authDomain: "tt-world-cup-sweepstake.firebaseapp.com",
     projectId: "tt-world-cup-sweepstake",
     storageBucket: "tt-world-cup-sweepstake.firebasestorage.app",
@@ -170,6 +179,7 @@ let data = null;
 let round = 1;
 let isAdmin = false;
 let running = false;
+let paused = false;
 
 async function init() {
   const res = await fetch("./teams.json");
@@ -190,6 +200,22 @@ function checkAdmin() {
 
 function moveUI() {
   document.getElementById("leftPanel").classList.add("moved");
+}
+
+function togglePause() {
+  paused = !paused;
+  document.getElementById("pauseBtn").innerText = paused ? "Resume" : "Pause";
+}
+
+function waitWhilePaused() {
+  return new Promise(resolve => {
+    const check = setInterval(() => {
+      if (!paused) {
+        clearInterval(check);
+        resolve();
+      }
+    }, 200);
+  });
 }
 
 function getFlag(team) {
@@ -213,16 +239,6 @@ function getAvailablePeople() {
   return data.people.filter(p => p.teams.length < 2);
 }
 
-async function saveToFirebase() {
-  if (!isAdmin) return;
-
-  await db.collection("draw").doc("current").set({
-    people: data.people,
-    teams: data.teams,
-    round: round
-  });
-}
-
 function addToFeed(text) {
   const feed = document.getElementById("feed");
 
@@ -233,20 +249,28 @@ function addToFeed(text) {
   feed.prepend(card);
 }
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+function showFlag(team) {
+  const flagBox = document.getElementById("bigFlag");
+  flagBox.innerHTML = getFlag(team);
+  flagBox.classList.add("show");
 }
 
 async function startDraw() {
 
   if (running) return;
+
   running = true;
+  paused = false;
+
+  document.getElementById("pauseBtn").disabled = false;
 
   moveUI();
 
   const resultBox = document.getElementById("result");
 
   while (true) {
+
+    await waitWhilePaused();
 
     const peopleLeft = getAvailablePeople();
 
@@ -262,7 +286,6 @@ async function startDraw() {
 
     const team = remainingTeams[Math.floor(Math.random() * remainingTeams.length)];
 
-    // fake spinning
     let elapsed = 0;
     const duration = 1200;
     const intervalTime = 100;
@@ -286,8 +309,9 @@ async function startDraw() {
           const final = `${getFlag(team.name)} ${person.name} → ${team.name}`;
 
           resultBox.innerHTML = final;
+
           addToFeed(final);
-          saveToFirebase();
+          showFlag(team.name);
 
           resolve();
         }
@@ -296,12 +320,13 @@ async function startDraw() {
 
     });
 
-    // ⏱️ 2 SECOND DELAY BETWEEN RESULTS
-    await sleep(2000);
+    await waitWhilePaused();
+    await new Promise(r => setTimeout(r, 2000));
   }
 
   resultBox.innerHTML = "🎉 Draw Complete!";
   running = false;
+  document.getElementById("pauseBtn").disabled = true;
 }
 
 init();

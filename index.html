@@ -62,10 +62,6 @@
       margin: 5px;
     }
 
-    button:disabled {
-      opacity: 0.5;
-    }
-
     .result {
       margin-top: 20px;
       font-size: 20px;
@@ -92,7 +88,6 @@
       transform: translateY(0) scale(1);
     }
 
-    /* PROGRESS BAR */
     #progressText {
       margin-top: 12px;
       font-size: 13px;
@@ -166,9 +161,7 @@
 
       <div id="bigFlag"></div>
 
-      <!-- PROGRESS -->
       <div id="progressText"></div>
-
       <div class="progress-wrapper">
         <div id="progressBar"></div>
       </div>
@@ -185,29 +178,18 @@
 
 </div>
 
-<!-- FIREBASE -->
-<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
-
+<!-- SFX -->
 <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyDgzUhc-cVSoPAejfxV-pHUC2jAZIxTAXw",
-    authDomain: "tt-world-cup-sweepstake.firebaseapp.com",
-    projectId: "tt-world-cup-sweepstake",
-    storageBucket: "tt-world-cup-sweepstake.firebasestorage.app",
-    messagingSenderId: "786742826315",
-    appId: "1:786742826315:web:9fd75b68ad277f5173c4ce"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+const drum = new Audio("drum.mp3");
+const ding = new Audio("ding.mp3");
+const cheer = new Audio("cheer.mp3");
+const aww = new Audio("aww.mp3");
+drum.loop = true;
 </script>
 
 <script>
 
 let data = null;
-let round = 1;
-let isAdmin = false;
 let running = false;
 let paused = false;
 
@@ -221,9 +203,7 @@ async function init() {
 
 function checkAdmin() {
   const pass = prompt("Enter admin password:");
-
   if (pass === "TTWCSweep2026-!\"£") {
-    isAdmin = true;
     document.getElementById("drawBtn").disabled = false;
   }
 }
@@ -238,31 +218,28 @@ function togglePause() {
 }
 
 function waitWhilePaused() {
-  return new Promise(resolve => {
-    const check = setInterval(() => {
-      if (!paused) {
-        clearInterval(check);
-        resolve();
-      }
+  return new Promise(res => {
+    const i = setInterval(() => {
+      if (!paused) { clearInterval(i); res(); }
     }, 200);
   });
 }
 
 function getFlag(team) {
   const flags = {
-    "Argentina": "🇦🇷",
-    "Brazil": "🇧🇷",
-    "France": "🇫🇷",
-    "England": "🏴",
-    "Spain": "🇪🇸",
-    "Portugal": "🇵🇹",
-    "Germany": "🇩🇪",
-    "Netherlands": "🇳🇱",
-    "Italy": "🇮🇹",
-    "Belgium": "🇧🇪"
+    "France":"🇫🇷","Brazil":"🇧🇷","Germany":"🇩🇪","Spain":"🇪🇸",
+    "England":"🏴","Portugal":"🇵🇹","Argentina":"🇦🇷",
+    "Netherlands":"🇳🇱","Belgium":"🇧🇪"
   };
-
   return flags[team] || "🌍";
+}
+
+function isBig(team) {
+  return ["France","Brazil","Germany","Spain","England","Portugal","Argentina","Netherlands","Belgium"].includes(team);
+}
+
+function isBad(team) {
+  return ["Haiti","Uzbekistan","Congo","Panama","Curacao","Cape Verde"].includes(team);
 }
 
 function getAvailablePeople() {
@@ -271,109 +248,109 @@ function getAvailablePeople() {
 
 function addToFeed(text) {
   const feed = document.getElementById("feed");
-
-  const card = document.createElement("div");
-  card.className = "card";
-  card.innerHTML = text;
-
-  feed.prepend(card);
+  const div = document.createElement("div");
+  div.className = "card";
+  div.innerHTML = text;
+  feed.prepend(div);
 }
 
 function showFlag(team) {
-  const flagBox = document.getElementById("bigFlag");
-
-  flagBox.innerHTML = getFlag(team);
-  flagBox.classList.remove("show");
-  void flagBox.offsetWidth;
-  flagBox.classList.add("show");
+  const el = document.getElementById("bigFlag");
+  el.innerHTML = getFlag(team);
+  el.classList.remove("show");
+  void el.offsetWidth;
+  el.classList.add("show");
 }
 
 function updateProgress() {
-  const total = data.teams.length;
-  const assigned = data.people.reduce((sum, p) => sum + p.teams.length, 0);
-
-  const percent = (assigned / total) * 100;
+  const total = data.people.length * 2;
+  const assigned = data.people.reduce((s,p)=>s+p.teams.length,0);
+  const pct = (assigned/total)*100;
 
   document.getElementById("progressText").innerText =
     `${assigned} / ${total} teams assigned`;
 
-  document.getElementById("progressBar").style.width =
-    `${percent}%`;
+  document.getElementById("progressBar").style.width = pct + "%";
 }
 
 async function startDraw() {
 
   if (running) return;
-
   running = true;
-  paused = false;
 
+  paused = false;
   document.getElementById("pauseBtn").disabled = false;
 
   moveUI();
 
-  const resultBox = document.getElementById("result");
+  const result = document.getElementById("result");
+
+  drum.play();
 
   while (true) {
 
     await waitWhilePaused();
 
     const peopleLeft = getAvailablePeople();
+    if (!peopleLeft.length) break;
 
-    if (peopleLeft.length === 0) break;
+    const person = peopleLeft[Math.floor(Math.random()*peopleLeft.length)];
 
-    const person = peopleLeft[Math.floor(Math.random() * peopleLeft.length)];
+    const assigned = data.people.flatMap(p=>p.teams);
 
-    const assignedTeams = data.people.flatMap(p => p.teams);
+    const remaining = data.teams.filter(t=>!assigned.includes(t.name));
 
-    const remainingTeams = data.teams.filter(t =>
-      !assignedTeams.includes(t.name)
-    );
+    const team = remaining[Math.floor(Math.random()*remaining.length)];
 
-    const team = remainingTeams[Math.floor(Math.random() * remainingTeams.length)];
+    let t=0;
+    const duration=1200;
 
-    let elapsed = 0;
-    const duration = 1200;
-    const intervalTime = 100;
+    await new Promise(res=>{
 
-    await new Promise(resolve => {
+      const i=setInterval(()=>{
 
-      const interval = setInterval(() => {
+        const p=peopleLeft[Math.floor(Math.random()*peopleLeft.length)];
+        const tm=remaining[Math.floor(Math.random()*remaining.length)];
 
-        const tempPerson = peopleLeft[Math.floor(Math.random() * peopleLeft.length)];
-        const tempTeam = remainingTeams[Math.floor(Math.random() * remainingTeams.length)];
+        result.innerHTML=`🎲 ${p.name} → ${tm.name}`;
 
-        resultBox.innerHTML = `🎲 ${tempPerson.name} → ${tempTeam.name}`;
+        t+=100;
 
-        elapsed += intervalTime;
-
-        if (elapsed > duration) {
-          clearInterval(interval);
+        if(t>duration){
+          clearInterval(i);
 
           person.teams.push(team.name);
 
-          const final = `${getFlag(team.name)} ${person.name} → ${team.name}`;
+          const final=`${getFlag(team.name)} ${person.name} → ${team.name}`;
 
-          resultBox.innerHTML = final;
+          result.innerHTML=final;
 
           addToFeed(final);
           showFlag(team.name);
           updateProgress();
 
-          resolve();
+          drum.pause(); drum.currentTime=0;
+
+          if(isBig(team.name)) cheer.play();
+          else if(isBad(team.name)) aww.play();
+          else ding.play();
+
+          drum.play();
+
+          res();
         }
 
-      }, intervalTime);
+      },100);
 
     });
 
     await waitWhilePaused();
-    await new Promise(r => setTimeout(r, 2000));
+    await new Promise(r=>setTimeout(r,2000));
   }
 
-  resultBox.innerHTML = "🎉 Draw Complete!";
-  running = false;
-  document.getElementById("pauseBtn").disabled = true;
+  drum.pause();
+  result.innerHTML="🎉 Complete!";
+  running=false;
 }
 
 init();

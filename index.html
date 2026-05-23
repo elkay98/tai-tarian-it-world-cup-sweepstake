@@ -2,16 +2,81 @@
 <html>
 <head>
   <title>World Cup Sweepstake</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      text-align: center;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+      width: 400px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      font-size: 24px;
+    }
+
+    button {
+      padding: 12px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      background: #3b82f6;
+      color: white;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #2563eb;
+    }
+
+    .result {
+      margin-top: 25px;
+      font-size: 20px;
+      font-weight: bold;
+      min-height: 40px;
+    }
+
+    .remaining {
+      margin-top: 10px;
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
+    .team {
+      color: #22c55e;
+    }
+
+    .person {
+      color: #fbbf24;
+    }
+  </style>
 </head>
 
 <body>
 
-<h1>World Cup Sweepstake Draw</h1>
+<div class="container">
+  <h1>⚽ World Cup Sweepstake</h1>
 
-<button onclick="drawTeam()">Draw</button>
+  <button onclick="drawTeam()">Draw Team</button>
 
-<div id="result" style="margin-top:20px; font-size:20px;"></div>
-<div id="remaining" style="margin-top:10px;"></div>
+  <div id="result" class="result"></div>
+  <div id="remaining" class="remaining"></div>
+</div>
 
 <script>
 let data = null;
@@ -31,7 +96,7 @@ function drawTeam() {
   const peopleLeft = getAvailablePeople();
 
   if (peopleLeft.length === 0) {
-    document.getElementById("result").innerHTML = "✅ Draw complete!";
+    document.getElementById("result").innerHTML = "🎉 Draw complete!";
     return;
   }
 
@@ -48,10 +113,10 @@ function drawTeam() {
   person.teams.push(team.name);
 
   document.getElementById("result").innerHTML =
-    person.name + " → " + team.name;
+    `<span class="person">${person.name}</span> gets <span class="team">${team.name}</span>`;
 
   document.getElementById("remaining").innerHTML =
-    getAvailablePeople().length + " people still need teams";
+    `${getAvailablePeople().length} people still need teams`;
 }
 
 init();

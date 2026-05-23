@@ -20,7 +20,6 @@
       background: rgba(255, 255, 255, 0.05);
       padding: 40px;
       border-radius: 20px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.4);
       width: 420px;
     }
 
@@ -37,7 +36,6 @@
       cursor: pointer;
       background: #3b82f6;
       color: white;
-      transition: 0.2s;
     }
 
     button:hover {
@@ -46,36 +44,15 @@
 
     .result {
       margin-top: 25px;
-      padding: 20px;
-      border-radius: 15px;
-      background: rgba(255,255,255,0.08);
       font-size: 22px;
       font-weight: bold;
       min-height: 60px;
-      transition: all 0.3s ease;
-    }
-
-    .result.flash {
-      transform: scale(1.05);
     }
 
     .remaining {
       margin-top: 10px;
       font-size: 14px;
       opacity: 0.8;
-    }
-
-    .person {
-      color: #fbbf24;
-    }
-
-    .team {
-      color: #22c55e;
-    }
-
-    .flag {
-      font-size: 28px;
-      margin-right: 10px;
     }
   </style>
 </head>
@@ -85,7 +62,7 @@
 <div class="container">
   <h1>⚽ World Cup Sweepstake</h1>
 
-  <button onclick="drawTeam()">Draw Team</button>
+  <button onclick="drawTeam()">Draw</button>
 
   <div id="result" class="result"></div>
   <div id="remaining" class="remaining"></div>
@@ -101,19 +78,56 @@ async function init() {
 
 function getFlag(team) {
   const flags = {
-    "Argentina": "🇦🇷","Brazil":"🇧🇷","France":"🇫🇷","England":"🏴",
-    "Spain":"🇪🇸","Portugal":"🇵🇹","Germany":"🇩🇪","Netherlands":"🇳🇱",
-    "Italy":"🇮🇹","Belgium":"🇧🇪","Croatia":"🇭🇷","Uruguay":"🇺🇾",
-    "USA":"🇺🇸","Mexico":"🇲🇽","Canada":"🇨🇦","Japan":"🇯🇵",
-    "South Korea":"🇰🇷","Morocco":"🇲🇦","Senegal":"🇸🇳","Switzerland":"🇨🇭",
-    "Denmark":"🇩🇰","Austria":"🇦🇹","Poland":"🇵🇱","Wales":"🏴",
-    "Scotland":"🏴","Serbia":"🇷🇸","Ukraine":"🇺🇦","Turkey":"🇹🇷",
-    "Nigeria":"🇳🇬","Egypt":"🇪🇬","Ghana":"🇬🇭","Cameroon":"🇨🇲",
-    "Algeria":"🇩🇿","Tunisia":"🇹🇳","Ecuador":"🇪🇨","Colombia":"🇨🇴",
-    "Chile":"🇨🇱","Peru":"🇵🇪","Paraguay":"🇵🇾","Iran":"🇮🇷",
-    "Saudi Arabia":"🇸🇦","Qatar":"🇶🇦","Australia":"🇦🇺","New Zealand":"🇳🇿",
-    "Costa Rica":"🇨🇷","Panama":"🇵🇦","Honduras":"🇭🇳","Ivory Coast":"🇨🇮"
+    "Argentina": "🇦🇷",
+    "Brazil": "🇧🇷",
+    "France": "🇫🇷",
+    "England": "🏴",
+    "Spain": "🇪🇸",
+    "Portugal": "🇵🇹",
+    "Germany": "🇩🇪",
+    "Netherlands": "🇳🇱",
+    "Italy": "🇮🇹",
+    "Belgium": "🇧🇪",
+    "Croatia": "🇭🇷",
+    "Uruguay": "🇺🇾",
+    "USA": "🇺🇸",
+    "Mexico": "🇲🇽",
+    "Canada": "🇨🇦",
+    "Japan": "🇯🇵",
+    "South Korea": "🇰🇷",
+    "Morocco": "🇲🇦",
+    "Senegal": "🇸🇳",
+    "Switzerland": "🇨🇭",
+    "Denmark": "🇩🇰",
+    "Austria": "🇦🇹",
+    "Poland": "🇵🇱",
+    "Wales": "🏴",
+    "Scotland": "🏴",
+    "Serbia": "🇷🇸",
+    "Ukraine": "🇺🇦",
+    "Turkey": "🇹🇷",
+    "Nigeria": "🇳🇬",
+    "Egypt": "🇪🇬",
+    "Ghana": "🇬🇭",
+    "Cameroon": "🇨🇲",
+    "Algeria": "🇩🇿",
+    "Tunisia": "🇹🇳",
+    "Ecuador": "🇪🇨",
+    "Colombia": "🇨🇴",
+    "Chile": "🇨🇱",
+    "Peru": "🇵🇪",
+    "Paraguay": "🇵🇾",
+    "Iran": "🇮🇷",
+    "Saudi Arabia": "🇸🇦",
+    "Qatar": "🇶🇦",
+    "Australia": "🇦🇺",
+    "New Zealand": "🇳🇿",
+    "Costa Rica": "🇨🇷",
+    "Panama": "🇵🇦",
+    "Honduras": "🇭🇳",
+    "Ivory Coast": "🇨🇮"
   };
+
   return flags[team] || "🌍";
 }
 
@@ -141,24 +155,13 @@ function drawTeam() {
 
   const team = remainingTeams[Math.floor(Math.random() * remainingTeams.length)];
 
-  const resultBox = document.getElementById("result");
+  person.teams.push(team.name);
 
-  resultBox.innerHTML = "🎲 Drawing...";
-  resultBox.classList.add("flash");
+  document.getElementById("result").innerHTML =
+    `${getFlag(team.name)} ${person.name} → ${team.name}`;
 
-  setTimeout(() => {
-
-    person.teams.push(team.name);
-
-    resultBox.innerHTML =
-      `<span class="person">${person.name}</span><br>gets<br><span class="flag">${getFlag(team.name)}</span> <span class="team">${team.name}</span>`;
-
-    document.getElementById("remaining").innerHTML =
-      `${getAvailablePeople().length} people still need teams`;
-
-    setTimeout(() => resultBox.classList.remove("flash"), 200);
-
-  }, 1200);
+  document.getElementById("remaining").innerHTML =
+    `${getAvailablePeople().length} people still need teams`;
 }
 
 init();

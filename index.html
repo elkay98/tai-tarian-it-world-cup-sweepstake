@@ -2,8 +2,14 @@
 let data = null;
 
 async function init() {
-  const res = await fetch("./teams.json");
-  data = await res.json();
+  try {
+    const res = await fetch("./teams.json");
+    data = await res.json();
+  } catch (err) {
+    document.getElementById("result").innerHTML =
+      "❌ Failed to load teams.json";
+    console.error(err);
+  }
 }
 
 function getAvailablePeople() {
@@ -11,6 +17,7 @@ function getAvailablePeople() {
 }
 
 function drawTeam() {
+  if (!data) return;
 
   const availablePeople = getAvailablePeople();
 
@@ -19,11 +26,9 @@ function drawTeam() {
     return;
   }
 
-  // pick random person who still needs teams
-  const personIndex = Math.floor(Math.random() * availablePeople.length);
-  const person = availablePeople[personIndex];
+  const person =
+    availablePeople[Math.floor(Math.random() * availablePeople.length)];
 
-  // FIXED: derive remaining teams ONLY from data.teams + people assignments
   const remainingTeams = data.teams.filter(t =>
     !data.people.some(p => p.teams.includes(t.name))
   );
@@ -33,20 +38,16 @@ function drawTeam() {
     return;
   }
 
-  // pick random team
-  const teamIndex = Math.floor(Math.random() * remainingTeams.length);
-  const team = remainingTeams[teamIndex];
+  const team =
+    remainingTeams[Math.floor(Math.random() * remainingTeams.length)];
 
-  // assign team
   person.teams.push(team.name);
 
-  // UI update
   document.getElementById("result").innerHTML =
-    `${person.name} gets <br><br> 🌍 ${team.name}`;
+    `${person.name} → ${team.name}`;
 
   document.getElementById("remaining").innerHTML =
     `${getAvailablePeople().length} people still need teams`;
-
 }
 
 init();

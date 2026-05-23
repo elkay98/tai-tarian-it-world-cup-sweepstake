@@ -2,48 +2,158 @@
 <html>
 <head>
   <title>World Cup Sweepstake</title>
+
   <style>
-    body { font-family: Arial; background:#111; color:white; margin:0; }
-    .wrap { display:flex; height:100vh; }
-    .left { width:40%; padding:40px; }
-    .right { width:60%; padding:40px; overflow:auto; }
-    .card { background:#222; padding:10px; margin:5px 0; border-radius:8px; }
-    button { padding:10px; margin:5px; cursor:pointer; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: white;
+      overflow: hidden;
+    }
+
+    .wrapper {
+      display: flex;
+      height: 100vh;
+    }
+
+    .left {
+      width: 40%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: all 0.6s ease;
+    }
+
+    .left.moved {
+      justify-content: flex-start;
+      align-items: flex-start;
+      padding: 40px;
+    }
+
+    .container {
+      text-align: center;
+      background: rgba(255,255,255,0.05);
+      padding: 40px;
+      border-radius: 20px;
+      width: 320px;
+    }
+
+    .left.moved .container {
+      width: 100%;
+      text-align: left;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 10px 16px;
+      margin: 5px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      background: #3b82f6;
+      color: white;
+    }
+
+    .result {
+      margin-top: 20px;
+      font-size: 20px;
+      min-height: 60px;
+    }
+
+    #bigFlag {
+      font-size: 80px;
+      margin-top: 20px;
+      opacity: 0;
+      transform: translateY(20px) scale(0.8);
+      transition: all 0.6s ease;
+    }
+
+    #bigFlag.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .right {
+      width: 60%;
+      padding: 40px;
+      overflow-y: auto;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.06);
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
   </style>
 </head>
+
 <body>
 
-<div class="wrap">
-  <div class="left">
-    <h1>World Cup Sweepstake</h1>
-    <button onclick="startDraw()">Start Draw</button>
-    <div id="current"></div>
+<div class="wrapper">
+
+  <div class="left" id="leftPanel">
+    <div class="container">
+      <h1>⚽ Sweepstake Draw</h1>
+
+      <button onclick="startDraw()">Start Draw</button>
+
+      <div id="result" class="result"></div>
+      <div id="bigFlag"></div>
+    </div>
   </div>
 
   <div class="right">
     <div id="feed"></div>
   </div>
+
 </div>
 
 <script>
 let data;
 let running = false;
 
-/* 🔊 SIMPLE AUDIO */
-function play(freq){
-  const ctx = new (window.AudioContext||window.webkitAudioContext)();
-  const o = ctx.createOscillator();
-  const g = ctx.createGain();
-  o.connect(g); g.connect(ctx.destination);
-  o.frequency.value = freq;
-  g.gain.value = 0.1;
-  o.start();
-  setTimeout(()=>o.stop(),200);
+/* 🔊 AUDIO */
+let ctx;
+function initAudio(){
+  ctx = new (window.AudioContext || window.webkitAudioContext)();
 }
 
-/* 🧠 TIER CHECK (ONLY SOURCE OF TRUTH) */
-function getTier(team){
-  const t = data.teams.find(x=>x.name===team);
+function play(freq){
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+
+  o.connect(g);
+  g.connect(ctx.destination);
+
+  o.frequency.value = freq;
+  g.gain.value = 0.1;
+
+  o.start();
+  setTimeout(()=>o.stop(), 200);
+}
+
+function playDing(){ play(700); }
+function playCheer(){
+  play(900);
+  setTimeout(()=>play(1200),120);
+}
+function playAww(){
+  play(300);
+  setTimeout(()=>play(200),120);
+}
+
+/* 🧠 TIER SYSTEM (ONLY SOURCE OF TRUTH) */
+function getTier(teamName){
+  const t = data.teams.find(x => x.name === teamName);
   return t ? t.tier : "mid";
 }
 
@@ -52,36 +162,49 @@ function startDraw(){
   if(running) return;
   running = true;
 
+  if(!ctx) initAudio();
+
   let people = [...data.people];
-  let teams = [...data.teams.map(t=>t.name)];
+  let teams = data.teams.map(t => t.name);
 
   let i = 0;
 
   function step(){
-    if(i>=people.length) return;
+    if(i >= people.length) return;
 
     const person = people[i];
-    const team = teams.splice(Math.floor(Math.random()*teams.length),1)[0];
+
+    const team = teams.splice(
+      Math.floor(Math.random() * teams.length),
+      1
+    )[0];
 
     const tier = getTier(team);
 
     person.team = team;
 
-    document.getElementById("current").innerText =
+    document.getElementById("result").innerText =
       person.name + " → " + team;
 
+    const flag = document.getElementById("bigFlag");
+    flag.innerText = "🏳️";
+    flag.classList.add("show");
+
+    setTimeout(() => flag.classList.remove("show"), 1200);
+
     const div = document.createElement("div");
-    div.className="card";
+    div.className = "card";
     div.innerText = person.name + " → " + team;
+
     document.getElementById("feed").prepend(div);
 
-    /* 🔊 SOUND FIX (NOW USES TIER ONLY) */
-    if(tier==="elite") play(900);
-    else if(tier==="low") play(300);
-    else play(600);
+    /* 🔊 FIXED SOUND LOGIC */
+    if(tier === "elite") playCheer();
+    else if(tier === "low") playAww();
+    else playDing();
 
     i++;
-    setTimeout(step, 1200);
+    setTimeout(step, 2000);
   }
 
   step();
@@ -89,10 +212,9 @@ function startDraw(){
 
 /* 📦 LOAD JSON */
 fetch("teams.json")
-  .then(r=>r.json())
-  .then(j=>{
-    data=j;
-  });
+  .then(r => r.json())
+  .then(j => data = j);
+
 </script>
 
 </body>

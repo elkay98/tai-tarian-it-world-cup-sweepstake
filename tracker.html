@@ -75,7 +75,7 @@
 
     async function loadTeams() {
 
-      const response = await fetch("teams.json");
+      const response = await fetch("./teams.json");
       const teams = await response.json();
 
       teams.sort((a, b) => b.goalsConceded - a.goalsConceded);

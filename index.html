@@ -42,6 +42,11 @@
       background: #2563eb;
     }
 
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
     .result {
       margin-top: 25px;
       font-size: 22px;
@@ -72,19 +77,18 @@
 <div class="container">
   <h1>⚽ World Cup Sweepstake</h1>
 
-  <button onclick="drawTeam()">Draw</button>
+  <button onclick="drawTeam()" id="drawBtn">Draw</button>
 
   <div id="result" class="result"></div>
   <div id="remaining" class="remaining"></div>
 </div>
 
-<!-- ================= FIREBASE (PASTE LOCATION START) ================= -->
+<!-- ================= FIREBASE ================= -->
 
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
 
 <script>
-  // 🔥 FIREBASE INIT (DO NOT TOUCH)
   const firebaseConfig = {
     apiKey: "AIzaSyDgzUhc-cVSoPAejfxV-pHUC2jAZIxTAXw",
     authDomain: "tt-world-cup-sweepstake.firebaseapp.com",
@@ -98,16 +102,34 @@
   const db = firebase.firestore();
 </script>
 
-<!-- ================= FIREBASE (PASTE LOCATION END) ================= -->
+<!-- ================= APP LOGIC ================= -->
 
 <script>
 
 let data = null;
 let round = 1;
+let isAdmin = false;
 
 async function init() {
   const res = await fetch("./teams.json");
   data = await res.json();
+
+  document.getElementById("drawBtn").disabled = true;
+
+  checkAdmin();
+}
+
+function checkAdmin() {
+  const pass = prompt("Enter admin password:");
+
+  if (pass === "TTWCSweep2026-!\"£") {
+    isAdmin = true;
+    alert("Admin unlocked");
+    document.getElementById("drawBtn").disabled = false;
+  } else {
+    alert("Read-only mode enabled");
+    document.getElementById("drawBtn").disabled = true;
+  }
 }
 
 function getFlag(team) {
@@ -170,7 +192,8 @@ function getAvailablePeople() {
 }
 
 async function saveToFirebase() {
-  // 🔥 THIS is where data gets saved permanently
+  if (!isAdmin) return;
+
   await db.collection("draw").doc("current").set({
     people: data.people,
     teams: data.teams,
@@ -232,14 +255,13 @@ function drawTeam() {
         person.teams.push(team.name);
 
         resultBox.innerHTML =
-          `<span class="flag">${getFlag(team.name)}</span> ${person.name} → ${team.name}`;
+          `<span style="font-size:28px">${getFlag(team.name)}</span> ${person.name} → ${team.name}`;
 
         resultBox.classList.add("landed");
 
         document.getElementById("remaining").innerHTML =
           `Round ${round}: ${getAvailablePeople().length} people still need teams`;
 
-        // 🔥 SAVE TO FIREBASE (IMPORTANT)
         await saveToFirebase();
 
       }, 400);
@@ -249,6 +271,7 @@ function drawTeam() {
 }
 
 init();
+
 </script>
 
 </body>

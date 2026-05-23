@@ -178,12 +178,13 @@
 
 </div>
 
-<!-- SFX -->
 <script>
-const drum = new Audio("drum.mp3");
-const ding = new Audio("ding.mp3");
-const cheer = new Audio("cheer.mp3");
-const aww = new Audio("aww.mp3");
+// 🔊 WORKING ONLINE SOUNDS
+const drum = new Audio("https://actions.google.com/sounds/v1/alarms/drum_roll.ogg");
+const ding = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
+const cheer = new Audio("https://actions.google.com/sounds/v1/human_voices/crowd_cheer.ogg");
+const aww = new Audio("https://actions.google.com/sounds/v1/human_voices/crowd_groan.ogg");
+
 drum.loop = true;
 </script>
 
@@ -273,6 +274,10 @@ function updateProgress() {
   document.getElementById("progressBar").style.width = pct + "%";
 }
 
+function unlockAudio() {
+  drum.play().then(()=>{ drum.pause(); drum.currentTime=0; });
+}
+
 async function startDraw() {
 
   if (running) return;
@@ -282,6 +287,8 @@ async function startDraw() {
   document.getElementById("pauseBtn").disabled = false;
 
   moveUI();
+
+  unlockAudio();
 
   const result = document.getElementById("result");
 

@@ -182,7 +182,7 @@ function drawTeam() {
   const resultBox = document.getElementById("result");
 
   let elapsed = 0;
-  const duration = 3200;
+  const duration = 2200; // ✅ 2–3 second draw
   const intervalTime = 120;
 
   resultBox.classList.remove("landed");
@@ -212,7 +212,7 @@ function drawTeam() {
         document.getElementById("remaining").innerHTML =
           `Round ${round}: ${getAvailablePeople().length} people still need teams`;
 
-      }, 500);
+      }, 400);
     }
 
   }, intervalTime);

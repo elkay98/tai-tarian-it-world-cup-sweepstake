@@ -1,3 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>World Cup Sweepstake</title>
+</head>
+
+<body>
+
+<h1>World Cup Sweepstake Draw</h1>
+
+<button onclick="drawTeam()">Draw</button>
+
+<div id="result" style="margin-top:20px; font-size:20px;"></div>
+<div id="remaining" style="margin-top:10px;"></div>
+
+<script>
 let data = null;
 
 async function init() {
@@ -10,38 +26,36 @@ function getAvailablePeople() {
 }
 
 function drawTeam() {
+  if (!data) return;
 
-  const availablePeople = getAvailablePeople();
+  const peopleLeft = getAvailablePeople();
 
-  if (availablePeople.length === 0) {
+  if (peopleLeft.length === 0) {
     document.getElementById("result").innerHTML = "✅ Draw complete!";
     return;
   }
 
-  // pick random person who still needs teams
-  const personIndex = Math.floor(Math.random() * availablePeople.length);
-  const person = availablePeople[personIndex];
+  const person = peopleLeft[Math.floor(Math.random() * peopleLeft.length)];
 
-  // pick random team not already assigned
-  const allAssignedTeams = data.people.flatMap(p => p.teams);
+  const assignedTeams = data.people.flatMap(p => p.teams);
 
-  const remainingTeams = data.availableTeams.filter(t =>
-    !allAssignedTeams.includes(t)
+  const remainingTeams = data.teams.filter(t =>
+    !assignedTeams.includes(t.name)
   );
 
-  const teamIndex = Math.floor(Math.random() * remainingTeams.length);
-  const team = remainingTeams[teamIndex];
+  const team = remainingTeams[Math.floor(Math.random() * remainingTeams.length)];
 
-  // assign
-  person.teams.push(team);
+  person.teams.push(team.name);
 
-  // UI update
   document.getElementById("result").innerHTML =
-    `${person.name} gets <br><br> 🌍 ${team}`;
+    person.name + " → " + team.name;
 
   document.getElementById("remaining").innerHTML =
-    `${getAvailablePeople().length} people still need teams`;
-
+    getAvailablePeople().length + " people still need teams";
 }
 
 init();
+</script>
+
+</body>
+</html>

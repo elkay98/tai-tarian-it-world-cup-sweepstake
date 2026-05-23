@@ -78,6 +78,29 @@
       display: none;
       margin-top: 10px;
     }
+
+    /* 📊 PROGRESS BAR */
+    #progressWrapper {
+      margin-top: 10px;
+      width: 100%;
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      height: 10px;
+      overflow: hidden;
+    }
+
+    #progressBar {
+      height: 10px;
+      width: 0%;
+      background: #22c55e;
+      transition: width 0.4s ease;
+    }
+
+    #progressText {
+      font-size: 12px;
+      margin-top: 6px;
+      opacity: 0.8;
+    }
   </style>
 </head>
 
@@ -90,14 +113,23 @@
 
       <h1>⚽ Sweepstake Draw</h1>
 
-      <input type="password" id="adminPass" placeholder="Admin password">
-      <button onclick="unlockAdmin()">Unlock</button>
+      <!-- 🔐 LOGIN -->
+      <div id="loginBox">
+        <input type="password" id="adminPass" placeholder="Admin password">
+        <button onclick="unlockAdmin()">Unlock</button>
+      </div>
 
       <div id="adminPanel">
         <button onclick="startDraw()">Start Draw</button>
         <button onclick="togglePause()" id="pauseBtn">Pause</button>
-        <button onclick="resetDraw()">Reset Completely</button>
+        <button onclick="resetDraw()">Reset</button>
       </div>
+
+      <!-- 📊 PROGRESS -->
+      <div id="progressWrapper">
+        <div id="progressBar"></div>
+      </div>
+      <div id="progressText">0% complete</div>
 
       <div id="result" class="result"></div>
       <div id="bigFlag"></div>
@@ -111,14 +143,12 @@
 
 </div>
 
-<!-- 🔥 FIREBASE -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 import {
   getFirestore,
   doc,
-  setDoc,
-  getDoc
+  setDoc
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -135,7 +165,6 @@ const db = getFirestore(app);
 
 window.db = db;
 window.firebaseSet = setDoc;
-window.firebaseGet = getDoc;
 window.firebaseDoc = doc;
 </script>
 
@@ -144,6 +173,8 @@ let data;
 let running = false;
 let paused = false;
 let ctx;
+let totalPeople = 0;
+let completed = 0;
 
 const ADMIN_PASSWORD = 'TTWCSweep2026-!"£';
 
@@ -151,8 +182,8 @@ const ADMIN_PASSWORD = 'TTWCSweep2026-!"£';
 function unlockAdmin(){
   const input = document.getElementById("adminPass").value;
   if(input === ADMIN_PASSWORD){
+    document.getElementById("loginBox").style.display = "none";
     document.getElementById("adminPanel").style.display = "block";
-    alert("Admin unlocked");
   } else {
     alert("Wrong password");
   }
@@ -163,6 +194,15 @@ function togglePause(){
   paused = !paused;
   document.getElementById("pauseBtn").innerText =
     paused ? "Resume" : "Pause";
+}
+
+/* 📊 PROGRESS UPDATE */
+function updateProgress(){
+  const percent = Math.round((completed / totalPeople) * 100);
+
+  document.getElementById("progressBar").style.width = percent + "%";
+  document.getElementById("progressText").innerText =
+    percent + "% complete (" + completed + "/" + totalPeople + ")";
 }
 
 /* 🔊 AUDIO */
@@ -185,19 +225,13 @@ function play(freq){
 }
 
 function playDing(){ play(700); }
-function playCheer(){
-  play(900);
-  setTimeout(()=>play(1200), 120);
-}
-function playAww(){
-  play(300);
-  setTimeout(()=>play(200), 120);
-}
+function playCheer(){ play(900); setTimeout(()=>play(1200),120); }
+function playAww(){ play(300); setTimeout(()=>play(200),120); }
 
 function drumroll(){
   play(120);
-  setTimeout(()=>play(140), 150);
-  setTimeout(()=>play(120), 300);
+  setTimeout(()=>play(140),150);
+  setTimeout(()=>play(120),300);
 }
 
 /* 🏳️ FLAGS */
@@ -209,48 +243,12 @@ const flags = {
   "Austria":"🇦🇹","Serbia":"🇷🇸","Ukraine":"🇺🇦","Turkey":"🇹🇷",
   "Poland":"🇵🇱","Morocco":"🇲🇦","Senegal":"🇸🇳","Nigeria":"🇳🇬",
   "Egypt":"🇪🇬","Ghana":"🇬🇭","Cameroon":"🇨🇲","Algeria":"🇩🇿",
-  "Ivory Coast":"🇨🇮","Japan":"🇯🇵","South Korea":"🇰🇷","Iran":"🇮🇷",
-  "Saudi Arabia":"🇸🇦","Qatar":"🇶🇦","Australia":"🇦🇺",
-  "Uzbekistan":"🇺🇿","Iraq":"🇮🇶","Panama":"🇵🇦","Haiti":"🇭🇹",
-  "Curaçao":"🇨🇼","Cape Verde":"🇨🇻","DR Congo":"🇨🇩","Tunisia":"🇹🇳"
+  "Ivory Coast":"🇨🇮","Japan":"🇯🇵","South Korea":"🇰🇷",
+  "Iran":"🇮🇷","Saudi Arabia":"🇸🇦","Qatar":"🇶🇦",
+  "Australia":"🇦🇺","Uzbekistan":"🇺🇿","Iraq":"🇮🇶",
+  "Panama":"🇵🇦","Haiti":"🇭🇹","Curaçao":"🇨🇼","Cape Verde":"🇨🇻",
+  "DR Congo":"🇨🇩","Tunisia":"🇹🇳"
 };
-
-/* 🧠 TIER */
-function getTier(teamName){
-  const t = data.teams.find(x => x.name === teamName);
-  return t ? t.tier : "mid";
-}
-
-/* 💾 FIREBASE SAVE */
-async function saveState(){
-  if(!window.db) return;
-
-  const ref = firebaseDoc(db, "draw", "state");
-
-  const results = Array.from(document.querySelectorAll(".card"))
-    .map(x => x.innerText);
-
-  await firebaseSet(ref, {
-    people: data.people,
-    results: results
-  });
-}
-
-/* 🧨 RESET */
-async function resetDraw(){
-  if(!confirm("Reset EVERYTHING?")) return;
-
-  const ref = firebaseDoc(window.db, "draw", "state");
-
-  await firebaseSet(ref, {
-    people: data.people,
-    results: []
-  });
-
-  document.getElementById("feed").innerHTML = "";
-  document.getElementById("result").innerText = "";
-  alert("Reset complete");
-}
 
 /* ⚽ DRAW */
 function startDraw(){
@@ -261,6 +259,10 @@ function startDraw(){
 
   let people = [...data.people];
   let teams = data.teams.map(t => t.name);
+
+  totalPeople = people.length;
+  completed = 0;
+  updateProgress();
 
   let i = 0;
 
@@ -279,15 +281,11 @@ function startDraw(){
       1
     )[0];
 
-    const tier = getTier(team);
-
     drumroll();
 
     document.getElementById("result").innerText = "Drawing...";
 
     setTimeout(() => {
-
-      person.team = team;
 
       const flag = flags[team] || "🏳️";
 
@@ -300,27 +298,37 @@ function startDraw(){
 
       document.getElementById("feed").prepend(div);
 
-      if(tier === "elite") playCheer();
-      else if(tier === "low") playAww();
-      else playDing();
+      completed++;
+      updateProgress();
 
-      saveState();
+      playDing();
 
-    }, tier === "elite" ? 2500 : 1500);
+    }, 1500);
 
     i++;
-
-    setTimeout(step, tier === "elite" ? 3500 : 2500);
+    setTimeout(step, 2200);
   }
 
   step();
 }
 
-/* 📦 LOAD DATA */
+/* 🧨 RESET */
+async function resetDraw(){
+  if(!confirm("Reset everything?")) return;
+
+  document.getElementById("feed").innerHTML = "";
+  document.getElementById("result").innerText = "";
+
+  completed = 0;
+  updateProgress();
+
+  alert("Reset complete");
+}
+
+/* 📦 LOAD */
 fetch("teams.json")
   .then(r => r.json())
   .then(j => data = j);
-
 </script>
 
 </body>

@@ -120,9 +120,10 @@
 <script>
 
 let data;
-let remainingTeams = [];
 let finalResults = {};
 let completed = 0;
+let totalSteps = 48;
+let round = 1;
 
 const flags = {
   "Argentina":"ar",
@@ -182,64 +183,47 @@ function saveResultsToStorage(){
   );
 }
 
-/* 🎬 ANIMATED DRAW (UNCHANGED) */
+/* 🎬 START DRAW (2 ROUND SYSTEM) */
 function startDraw(){
 
   let people = [...data.people];
   people.sort(() => Math.random() - 0.5);
 
-  if(remainingTeams.length === 0){
-    remainingTeams = data.teams.map(t => t.name);
-  }
-
-  let i = 0;
-
-  function step(){
-
-    if(i >= people.length) return;
-
-    const person = people[i];
-
-    const team = remainingTeams.splice(
-      Math.floor(Math.random() * remainingTeams.length),
-      1
-    )[0];
-
-    assignResult(person, team, false);
-
-    i++;
-    setTimeout(step, 1200);
-  }
-
-  step();
-}
-
-/* ⚡ FIXED RANDOMISE (48 TEAMS GUARANTEED) */
-function randomiseDraw(){
-
-  let people = [...data.people];
-  people.sort(() => Math.random() - 0.5);
-
   let teams = [...data.teams.map(t => t.name)];
-  teams.sort(() => Math.random() - 0.5);
 
   finalResults = {};
-  remainingTeams = [];
   completed = 0;
+  round = 1;
 
-  // 🔥 2 ROUNDS = 48 TOTAL ASSIGNMENTS
-  for(let round = 1; round <= 2; round++){
+  function runRound(){
 
-    people.forEach(person => {
+    let i = 0;
 
-      if(!finalResults[person.name]){
-        finalResults[person.name] = { team1:"", team2:"" };
+    function step(){
+
+      if(i >= people.length){
+
+        if(round === 1){
+          round = 2;
+          document.getElementById("result").innerHTML =
+            "🔥 ROUND 1 COMPLETE";
+          setTimeout(runRound, 1200);
+        } else {
+          finishDraw();
+        }
+        return;
       }
+
+      const person = people[i];
 
       const team = teams.splice(
         Math.floor(Math.random() * teams.length),
         1
       )[0];
+
+      if(!finalResults[person.name]){
+        finalResults[person.name] = { team1:"", team2:"" };
+      }
 
       if(round === 1){
         finalResults[person.name].team1 = team;
@@ -248,61 +232,76 @@ function randomiseDraw(){
       }
 
       completed++;
-    });
+
+      document.getElementById("progressBar").style.width =
+        (completed / totalSteps * 100) + "%";
+
+      const div = document.createElement("div");
+      div.className = "card";
+      div.innerHTML = person.name + " → " + team;
+
+      document.getElementById("feed").prepend(div);
+
+      i++;
+      setTimeout(step, 900);
+    }
+
+    step();
   }
+
+  runRound();
+}
+
+/* ⚡ INSTANT DRAW (ALSO FIXED) */
+function randomiseDraw(){
+
+  let people = [...data.people];
+  people.sort(() => Math.random() - 0.5);
+
+  let teams = [...data.teams.map(t => t.name)];
+
+  finalResults = {};
+  completed = 0;
+  round = 1;
+
+  people.forEach(person => {
+
+    if(!finalResults[person.name]){
+      finalResults[person.name] = { team1:"", team2:"" };
+    }
+
+    finalResults[person.name].team1 =
+      teams.splice(Math.floor(Math.random()*teams.length),1)[0];
+
+    finalResults[person.name].team2 =
+      teams.splice(Math.floor(Math.random()*teams.length),1)[0];
+
+    completed += 2;
+  });
+
+  document.getElementById("progressBar").style.width = "100%";
+
+  saveResultsToStorage();
+
+  finishDraw();
+}
+
+/* 🏁 FINISH STATE */
+function finishDraw(){
 
   document.getElementById("progressBar").style.width = "100%";
 
   saveResultsToStorage();
 
   document.getElementById("result").innerHTML = `
-    <div style="margin-top:10px;font-size:18px;">
-      🎉 DRAW COMPLETE (48 TEAMS)
-    </div>
+    🎉 DRAW COMPLETE<br>
     <button onclick="goToTracker()" style="margin-top:10px;">
       Go to Live Tracker
     </button>
   `;
 }
 
-/* 🧠 ASSIGN UI */
-function assignResult(person, team, instant=false){
-
-  if(!finalResults[person.name]){
-    finalResults[person.name] = { team1:"", team2:"" };
-  }
-
-  finalResults[person.name].team1 =
-    finalResults[person.name].team1 || team;
-
-  if(finalResults[person.name].team1 !== team){
-    finalResults[person.name].team2 = team;
-  }
-
-  const div = document.createElement("div");
-  div.className = "card";
-
-  div.innerHTML =
-    person.name + " → " +
-    `<img class="flag" src="${flag(team)}"> ` +
-    team;
-
-  document.getElementById("feed").prepend(div);
-
-  completed++;
-
-  document.getElementById("progressBar").style.width =
-    (completed / data.people.length * 100) + "%";
-
-  if(!instant){
-    document.getElementById("result").innerHTML =
-      person.name + " → " +
-      `<img class="flag" src="${flag(team)}"> ` +
-      team;
-  }
-}
-
-/* 🔗 TRACKER LINK */
+/* 🔗 TRACKER */
 function goToTracker(){
   window.location.href = "tracker.html";
 }

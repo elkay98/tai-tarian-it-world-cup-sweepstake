@@ -81,10 +81,28 @@
       vertical-align:middle;
       margin:0 6px;
     }
+
+    /* 🔥 FULL SCREEN ROUND OVERLAY */
+    #overlay {
+      position:fixed;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      background:rgba(0,0,0,0.85);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      font-size:48px;
+      font-weight:bold;
+      z-index:9999;
+    }
   </style>
 </head>
 
 <body>
+
+<div id="overlay">ROUND 1 COMPLETE</div>
 
 <div class="wrapper">
 
@@ -190,12 +208,14 @@ function runLoop(allPeople, round1Teams, round2Teams){
       round = 2;
       i = 0;
 
-      document.getElementById("roundLabel").innerText = "ROUND 1 COMPLETE";
+      /* 🔥 FULL SCREEN OVERLAY */
+      const overlay = document.getElementById("overlay");
+      overlay.style.display = "flex";
 
       setTimeout(()=>{
-        document.getElementById("roundLabel").innerText = "ROUND 2";
+        overlay.style.display = "none";
         runLoop(allPeople, round1Teams, round2Teams);
-      }, 1200);
+      }, 3000);
 
       return;
     }
@@ -223,7 +243,9 @@ function runLoop(allPeople, round1Teams, round2Teams){
   const div = document.createElement("div");
   div.className = "card";
 
+  /* ✅ ONLY CHANGE: ADD TEAM LABELS */
   div.innerHTML =
+    (round === 1 ? "Team 1: " : "Team 2: ") +
     `${person.name} → ${getFlagImg(team)} ${team}`;
 
   document.getElementById("feed").prepend(div);
@@ -239,19 +261,16 @@ function runLoop(allPeople, round1Teams, round2Teams){
 /* ---------------- PAUSE ---------------- */
 function togglePause(){
   paused = !paused;
-  if(!paused && running) {
-    startDraw();
-  }
+  if(!paused && running) startDraw();
 }
 
-/* ---------------- RANDOMISE (UNCHANGED BEHAVIOUR) ---------------- */
+/* ---------------- RANDOMISE ---------------- */
 function randomiseDraw(){
 
   let p = [...data.people].sort(()=>Math.random()-0.5);
   let t = [...data.teams.map(x=>x.name)];
 
   results = {};
-
   document.getElementById("feed").innerHTML = "";
 
   p.forEach(person=>{

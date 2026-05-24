@@ -48,7 +48,6 @@
       min-height: 60px;
     }
 
-    /* 🏳️ MAIN FLAG */
     #mainFlag {
       font-size: 90px;
       margin: 15px 0;
@@ -62,14 +61,12 @@
       transform: scale(1);
     }
 
-    /* 🟦 ROUND TITLE */
     #roundTitle {
       font-size: 18px;
       opacity: 0.8;
       margin-bottom: 10px;
     }
 
-    /* 🎬 ROUND OVERLAY */
     #roundOverlay {
       position: fixed;
       top: 0;
@@ -102,7 +99,6 @@
       margin-top: 10px;
     }
 
-    /* 📊 PROGRESS */
     #progressWrapper {
       margin-top: 12px;
       width: 100%;
@@ -126,27 +122,44 @@
       opacity: 0.8;
       display: none;
     }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(255,255,255,0.05);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    th {
+      background: rgba(255,255,255,0.1);
+      padding: 12px;
+      text-align: left;
+    }
+
+    td {
+      padding: 12px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
   </style>
 </head>
 
 <body>
 
-<!-- 🎬 ROUND COMPLETE OVERLAY -->
 <div id="roundOverlay">ROUND COMPLETE</div>
 
 <div class="wrapper">
 
   <div class="left">
+
     <div class="container">
 
-      <!-- 🟦 ROUND TITLE -->
       <div id="roundTitle" style="display:none;">
         Round 1
       </div>
 
       <h1>⚽ T&I World Cup 2026 Sweepstake</h1>
 
-      <!-- 🏳️ MAIN FLAG -->
       <div id="mainFlag">🏳️</div>
 
       <input
@@ -178,7 +191,6 @@
 
       </div>
 
-      <!-- 📊 PROGRESS -->
       <div id="progressWrapper">
         <div id="progressBar"></div>
       </div>
@@ -190,6 +202,7 @@
       <div id="result" class="result"></div>
 
     </div>
+
   </div>
 
   <div class="right">
@@ -211,8 +224,9 @@ let completed = 0;
 let round = 1;
 const MAX_ROUNDS = 2;
 
-/* ✅ GLOBAL TEAM POOL */
 let remainingTeams = [];
+
+let finalResults = {};
 
 const ADMIN_PASSWORD = 'TTWCSweep2026-!"£';
 
@@ -254,9 +268,7 @@ function togglePause(){
 
   document.getElementById("pauseBtn")
     .innerText =
-      paused
-      ? "Resume"
-      : "Pause";
+      paused ? "Resume" : "Pause";
 }
 
 /* 📊 PROGRESS */
@@ -286,6 +298,22 @@ function showRoundComplete(nextRound){
     document.getElementById("roundOverlay");
 
   overlay.style.display = "flex";
+
+  if(nextRound > MAX_ROUNDS){
+
+    overlay.innerText = "DRAW COMPLETE";
+
+    setTimeout(() => {
+
+      overlay.style.display = "none";
+
+      buildFinalTable();
+
+    }, 3000);
+
+    return;
+  }
+
   overlay.innerText = "ROUND COMPLETE";
 
   running = false;
@@ -331,13 +359,11 @@ function tone(freq, duration=250, volume=0.12){
   setTimeout(() => o.stop(), duration);
 }
 
-/* 🟡 MID */
 function playDing(){
 
   tone(660, 180, 0.10);
 }
 
-/* 🟢 ELITE */
 function playCheer(){
 
   tone(520, 220, 0.12);
@@ -351,7 +377,6 @@ function playCheer(){
   }, 240);
 }
 
-/* 🔴 LOW */
 function playAww(){
 
   tone(420, 220, 0.12);
@@ -361,7 +386,6 @@ function playAww(){
   }, 140);
 }
 
-/* 🎺 DRUMROLL */
 function drumroll(){
 
   tone(110, 120);
@@ -421,7 +445,7 @@ const flags = {
   "Tunisia":"🇹🇳"
 };
 
-/* ⚽ DRAW SYSTEM */
+/* ⚽ DRAW */
 function startDraw(){
 
   if(running) return;
@@ -433,17 +457,14 @@ function startDraw(){
 
   if(!ctx) initAudio();
 
-  /* 🔀 RANDOMISE PEOPLE ORDER */
   let people = [...data.people];
 
   people.sort(() => Math.random() - 0.5);
 
-  /* ✅ CREATE TEAM POOL ONCE */
   if(remainingTeams.length === 0){
 
     remainingTeams =
       [...data.teams.map(t => t.name)];
-
   }
 
   totalPeople = people.length;
@@ -460,11 +481,7 @@ function startDraw(){
 
       running = false;
 
-      if(round < MAX_ROUNDS){
-
-        showRoundComplete(round + 1);
-
-      }
+      showRoundComplete(round + 1);
 
       return;
     }
@@ -478,13 +495,29 @@ function startDraw(){
 
     const person = people[i];
 
-    /* ✅ UNIQUE TEAM DRAW */
+    if(!finalResults[person.name]){
+
+      finalResults[person.name] = {
+        team1: "",
+        team2: ""
+      };
+    }
+
     const team = remainingTeams.splice(
       Math.floor(
         Math.random() * remainingTeams.length
       ),
       1
     )[0];
+
+    if(round === 1){
+
+      finalResults[person.name].team1 = team;
+
+    } else {
+
+      finalResults[person.name].team2 = team;
+    }
 
     drumroll();
 
@@ -504,7 +537,6 @@ function startDraw(){
           " " +
           team;
 
-      /* 🏳️ MAIN FLAG */
       const mainFlag =
         document.getElementById("mainFlag");
 
@@ -518,7 +550,6 @@ function startDraw(){
 
       }, 1200);
 
-      /* 📜 FEED */
       const div =
         document.createElement("div");
 
@@ -541,7 +572,6 @@ function startDraw(){
 
       updateProgress();
 
-      /* 🔊 TIERED SOUNDS */
       if([
         "Argentina",
         "Brazil",
@@ -586,6 +616,78 @@ function startDraw(){
   step();
 }
 
+/* 🏆 FINAL TABLE */
+function buildFinalTable(){
+
+  const feed =
+    document.getElementById("feed");
+
+  feed.innerHTML = "";
+
+  const wrapper =
+    document.createElement("div");
+
+  wrapper.innerHTML = `
+
+    <h2 style="margin-bottom:20px;">
+      🏆 Final Sweepstake Results
+    </h2>
+
+    <button
+      onclick="goToTracker()"
+      style="margin-bottom:20px;"
+    >
+      Open Live Tracker
+    </button>
+
+    <table>
+
+      <thead>
+        <tr>
+          <th>Person</th>
+          <th>Team 1</th>
+          <th>Team 2</th>
+        </tr>
+      </thead>
+
+      <tbody id="finalTableBody"></tbody>
+
+    </table>
+  `;
+
+  feed.appendChild(wrapper);
+
+  const tbody =
+    document.getElementById("finalTableBody");
+
+  Object.keys(finalResults)
+    .sort()
+    .forEach(name => {
+
+      const row =
+        document.createElement("tr");
+
+      row.innerHTML = `
+        <td>${name}</td>
+        <td>${finalResults[name].team1}</td>
+        <td>${finalResults[name].team2}</td>
+      `;
+
+      tbody.appendChild(row);
+    });
+}
+
+/* 📊 TRACKER */
+function goToTracker(){
+
+  localStorage.setItem(
+    "sweepstakeResults",
+    JSON.stringify(finalResults)
+  );
+
+  window.location.href = "tracker.html";
+}
+
 /* 🧨 RESET */
 function resetDraw(){
 
@@ -606,6 +708,8 @@ function resetDraw(){
   paused = false;
 
   remainingTeams = [];
+
+  finalResults = {};
 
   document.getElementById("roundTitle")
     .innerText = "Round 1";

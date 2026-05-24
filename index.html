@@ -44,7 +44,7 @@
 
     .result {
       margin-top: 20px;
-      font-size: 20px;
+      font-size: 18px;
       min-height: 60px;
     }
 
@@ -67,12 +67,6 @@
       border-radius: 3px;
       object-fit: cover;
       box-shadow: 0 0 2px rgba(0,0,0,0.4);
-    }
-
-    .teamCell {
-      display: flex;
-      align-items: center;
-      gap: 8px;
     }
 
     .right {
@@ -195,7 +189,15 @@ function flag(team){
   return code ? `https://flagcdn.com/w40/${code}.png` : "";
 }
 
-/* 🎬 NORMAL ANIMATED DRAW */
+/* 🧠 SAVE RESULTS FOR TRACKER */
+function saveResultsToStorage(){
+  localStorage.setItem(
+    "sweepstakeResults",
+    JSON.stringify(finalResults)
+  );
+}
+
+/* 🎬 ANIMATED DRAW */
 function startDraw(){
 
   let people = [...data.people];
@@ -218,16 +220,16 @@ function startDraw(){
       1
     )[0];
 
-    assignResult(person, team);
+    assignResult(person, team, false);
 
     i++;
-    setTimeout(step, 1500);
+    setTimeout(step, 1200);
   }
 
   step();
 }
 
-/* ⚡ INSTANT FULL RANDOM DRAW */
+/* ⚡ RANDOMISE FULL INSTANT DRAW */
 function randomiseDraw(){
 
   let people = [...data.people];
@@ -251,9 +253,20 @@ function randomiseDraw(){
   });
 
   document.getElementById("progressBar").style.width = "100%";
+
+  saveResultsToStorage();
+
+  document.getElementById("result").innerHTML = `
+    <div style="margin-top:10px;font-size:18px;">
+      🎉 DRAW COMPLETE
+    </div>
+    <button onclick="goToTracker()" style="margin-top:10px;">
+      Go to Live Tracker
+    </button>
+  `;
 }
 
-/* 🧠 CORE ASSIGNMENT */
+/* 🧠 CORE ASSIGN */
 function assignResult(person, team, instant=false){
 
   if(!finalResults[person.name]){
@@ -290,6 +303,12 @@ function assignResult(person, team, instant=false){
   }
 }
 
+/* 🔗 GO TO TRACKER */
+function goToTracker(){
+  window.location.href = "tracker.html";
+}
+
+/* 🔁 RESET */
 function resetDraw(){
   location.reload();
 }

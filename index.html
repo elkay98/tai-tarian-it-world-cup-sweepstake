@@ -48,19 +48,6 @@
       min-height: 60px;
     }
 
-    #mainFlag {
-      font-size: 90px;
-      margin: 15px 0;
-      opacity: 0;
-      transform: scale(0.7);
-      transition: all 0.5s ease;
-    }
-
-    #mainFlag.show {
-      opacity: 1;
-      transform: scale(1);
-    }
-
     .flag {
       width: 28px;
       height: 20px;
@@ -109,8 +96,6 @@
     <div class="container">
 
       <h1>⚽ T&I World Cup 2026 Sweepstake</h1>
-
-      <div id="mainFlag"></div>
 
       <button onclick="startDraw()">Start Draw</button>
       <button onclick="randomiseDraw()">Randomise Draw</button>
@@ -189,7 +174,7 @@ function flag(team){
   return code ? `https://flagcdn.com/w40/${code}.png` : "";
 }
 
-/* 🧠 SAVE RESULTS FOR TRACKER */
+/* 💾 SAVE */
 function saveResultsToStorage(){
   localStorage.setItem(
     "sweepstakeResults",
@@ -197,7 +182,7 @@ function saveResultsToStorage(){
   );
 }
 
-/* 🎬 ANIMATED DRAW */
+/* 🎬 ANIMATED DRAW (UNCHANGED) */
 function startDraw(){
 
   let people = [...data.people];
@@ -229,28 +214,42 @@ function startDraw(){
   step();
 }
 
-/* ⚡ RANDOMISE FULL INSTANT DRAW */
+/* ⚡ FIXED RANDOMISE (48 TEAMS GUARANTEED) */
 function randomiseDraw(){
 
   let people = [...data.people];
   people.sort(() => Math.random() - 0.5);
 
   let teams = [...data.teams.map(t => t.name)];
+  teams.sort(() => Math.random() - 0.5);
 
   finalResults = {};
-  remainingTeams = [...teams];
+  remainingTeams = [];
   completed = 0;
 
-  people.forEach(person => {
+  // 🔥 2 ROUNDS = 48 TOTAL ASSIGNMENTS
+  for(let round = 1; round <= 2; round++){
 
-    const team = teams.splice(
-      Math.floor(Math.random() * teams.length),
-      1
-    )[0];
+    people.forEach(person => {
 
-    assignResult(person, team, true);
+      if(!finalResults[person.name]){
+        finalResults[person.name] = { team1:"", team2:"" };
+      }
 
-  });
+      const team = teams.splice(
+        Math.floor(Math.random() * teams.length),
+        1
+      )[0];
+
+      if(round === 1){
+        finalResults[person.name].team1 = team;
+      } else {
+        finalResults[person.name].team2 = team;
+      }
+
+      completed++;
+    });
+  }
 
   document.getElementById("progressBar").style.width = "100%";
 
@@ -258,7 +257,7 @@ function randomiseDraw(){
 
   document.getElementById("result").innerHTML = `
     <div style="margin-top:10px;font-size:18px;">
-      🎉 DRAW COMPLETE
+      🎉 DRAW COMPLETE (48 TEAMS)
     </div>
     <button onclick="goToTracker()" style="margin-top:10px;">
       Go to Live Tracker
@@ -266,7 +265,7 @@ function randomiseDraw(){
   `;
 }
 
-/* 🧠 CORE ASSIGN */
+/* 🧠 ASSIGN UI */
 function assignResult(person, team, instant=false){
 
   if(!finalResults[person.name]){
@@ -303,7 +302,7 @@ function assignResult(person, team, instant=false){
   }
 }
 
-/* 🔗 GO TO TRACKER */
+/* 🔗 TRACKER LINK */
 function goToTracker(){
   window.location.href = "tracker.html";
 }

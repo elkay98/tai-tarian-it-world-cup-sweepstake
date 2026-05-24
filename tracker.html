@@ -39,11 +39,6 @@
       background: rgba(255,255,255,0.03);
     }
 
-    .goals {
-      font-weight: bold;
-      text-align: center;
-    }
-
     .controls {
       margin-bottom: 20px;
     }
@@ -75,7 +70,7 @@
 
     .total {
       font-weight: bold;
-      font-size: 18px;
+      text-align: center;
     }
   </style>
 </head>
@@ -83,40 +78,26 @@
 <body>
 
 <div class="topbar">
-
   <h1>📊 Live World Cup Tracker</h1>
-
-  <button onclick="goBack()">
-    Back To Draw
-  </button>
-
+  <button onclick="goBack()">Back To Draw</button>
 </div>
 
 <div class="controls">
-
-  <button onclick="saveGoals()">
-    Save Goals
-  </button>
-
-  <button onclick="resetGoals()">
-    Reset Goals
-  </button>
-
+  <button onclick="saveGoals()">Save Goals</button>
+  <button onclick="resetGoals()">Reset Goals</button>
 </div>
 
 <table>
 
   <thead>
-
     <tr>
       <th>Person</th>
       <th>Team 1</th>
       <th>Team 2</th>
       <th>Goals Conceded (Team 1)</th>
       <th>Goals Conceded (Team 2)</th>
-      <th>Total Goals Conceded</th>
+      <th>Total</th>
     </tr>
-
   </thead>
 
   <tbody id="trackerBody"></tbody>
@@ -124,6 +105,7 @@
 </table>
 
 <script>
+
 const results = JSON.parse(
   localStorage.getItem("sweepstakeResults")
 );
@@ -132,114 +114,66 @@ let savedGoals = JSON.parse(
   localStorage.getItem("goalsConceded")
 ) || {};
 
-const tbody =
-  document.getElementById("trackerBody");
+const tbody = document.getElementById("trackerBody");
 
 Object.keys(results)
   .sort()
   .forEach(name => {
 
-    const team1Goals =
-      savedGoals[name]?.team1 || 0;
+    const team1Goals = savedGoals[name]?.team1 || 0;
+    const team2Goals = savedGoals[name]?.team2 || 0;
 
-    const team2Goals =
-      savedGoals[name]?.team2 || 0;
-
-    const total =
-      team1Goals + team2Goals;
-
-    const row =
-      document.createElement("tr");
+    const row = document.createElement("tr");
 
     row.innerHTML = `
       <td>${name}</td>
 
       <td>${results[name].team1}</td>
-
       <td>${results[name].team2}</td>
 
-      <td class="goals">
-
-        <input
-          type="number"
-          min="0"
+      <td>
+        <input type="number"
+          id="t1-${name}"
           value="${team1Goals}"
-          id="team1-${name}"
-          onchange="updateTotal('${name}')"
-        >
-
-      </td>
-
-      <td class="goals">
-
-        <input
-          type="number"
           min="0"
-          value="${team2Goals}"
-          id="team2-${name}"
-          onchange="updateTotal('${name}')"
         >
-
       </td>
 
-      <td
-        class="total"
-        id="total-${name}"
-      >
-        ${total}
+      <td>
+        <input type="number"
+          id="t2-${name}"
+          value="${team2Goals}"
+          min="0"
+        >
+      </td>
+
+      <td class="total" id="total-${name}">
+        ${team1Goals + team2Goals}
       </td>
     `;
 
     tbody.appendChild(row);
   });
 
-/* ➕ LIVE TOTAL UPDATE */
-function updateTotal(name){
-
-  const t1 =
-    parseInt(
-      document.getElementById(
-        "team1-" + name
-      ).value
-    ) || 0;
-
-  const t2 =
-    parseInt(
-      document.getElementById(
-        "team2-" + name
-      ).value
-    ) || 0;
-
-  document.getElementById(
-    "total-" + name
-  ).innerText = t1 + t2;
-}
-
-/* 💾 SAVE GOALS */
+/* 💾 SAVE */
 function saveGoals(){
 
-  Object.keys(results)
-    .forEach(name => {
+  Object.keys(results).forEach(name => {
 
-      const team1 =
-        parseInt(
-          document.getElementById(
-            "team1-" + name
-          ).value
-        ) || 0;
+    const t1 = parseInt(
+      document.getElementById("t1-" + name).value
+    ) || 0;
 
-      const team2 =
-        parseInt(
-          document.getElementById(
-            "team2-" + name
-          ).value
-        ) || 0;
+    const t2 = parseInt(
+      document.getElementById("t2-" + name).value
+    ) || 0;
 
-      savedGoals[name] = {
-        team1,
-        team2
-      };
-    });
+    savedGoals[name] = {
+      team1: t1,
+      team2: t2
+    };
+
+  });
 
   localStorage.setItem(
     "goalsConceded",
@@ -249,42 +183,32 @@ function saveGoals(){
   alert("Goals saved");
 }
 
-/* 🧨 RESET GOALS */
+/* 🔁 RESET */
 function resetGoals(){
 
   if(!confirm("Reset all goals?")) return;
 
-  Object.keys(results)
-    .forEach(name => {
+  Object.keys(results).forEach(name => {
 
-      document.getElementById(
-        "team1-" + name
-      ).value = 0;
+    document.getElementById("t1-" + name).value = 0;
+    document.getElementById("t2-" + name).value = 0;
 
-      document.getElementById(
-        "team2-" + name
-      ).value = 0;
+    document.getElementById("total-" + name).innerText = 0;
 
-      document.getElementById(
-        "total-" + name
-      ).innerText = 0;
+  });
 
-    });
+  localStorage.removeItem("goalsConceded");
 
   savedGoals = {};
-
-  localStorage.removeItem(
-    "goalsConceded"
-  );
 
   alert("Goals reset");
 }
 
 /* 🔙 BACK */
 function goBack(){
-
   window.location.href = "index.html";
 }
+
 </script>
 
 </body>

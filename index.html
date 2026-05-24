@@ -153,7 +153,6 @@ let round = 1;
 let paused = false;
 let running = false;
 
-/* ✅ ONLY CHANGE: timing increased */
 const DRAW_SPEED = 2500;
 
 /* ---------------- FLAGS ---------------- */
@@ -252,6 +251,7 @@ function runLoop(allPeople, round1Teams, round2Teams){
   div.className = "card";
 
   div.innerHTML =
+    (round === 1 ? "Team 1: " : "Team 2: ") +
     `${person.name} → ${getFlagImg(team)} ${team}`;
 
   document.getElementById("feed").prepend(div);
@@ -328,7 +328,9 @@ function randomiseDraw(){
 function finish(){
 
   running = false;
-  save();
+
+  // ✅ SAVE FOR TRACKER
+  localStorage.setItem("sweepstakeResults", JSON.stringify(results));
 
   document.getElementById("progressBar").style.width = "100%";
   document.getElementById("progressText").innerHTML =
@@ -337,7 +339,7 @@ function finish(){
   document.getElementById("roundLabel").innerText = "DRAW COMPLETE";
 
   document.getElementById("result").innerHTML = `
-    🎉 DRAW COMPLETE<br>
+    🎉 DRAW COMPLETE<br><br>
     <button onclick="go()">Go to Tracker</button>
   `;
 }

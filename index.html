@@ -160,6 +160,7 @@
       </button>
 
       <div id="adminPanel">
+
         <button onclick="startDraw()">
           Start Draw
         </button>
@@ -174,6 +175,7 @@
         <button onclick="resetDraw()">
           Reset
         </button>
+
       </div>
 
       <!-- 📊 PROGRESS -->
@@ -209,7 +211,7 @@ let completed = 0;
 let round = 1;
 const MAX_ROUNDS = 2;
 
-/* ✅ REMAINING TEAMS POOL */
+/* ✅ GLOBAL TEAM POOL */
 let remainingTeams = [];
 
 const ADMIN_PASSWORD = 'TTWCSweep2026-!"£';
@@ -251,9 +253,10 @@ function togglePause(){
   paused = !paused;
 
   document.getElementById("pauseBtn")
-    .innerText = paused
-    ? "Resume"
-    : "Pause";
+    .innerText =
+      paused
+      ? "Resume"
+      : "Pause";
 }
 
 /* 📊 PROGRESS */
@@ -268,9 +271,12 @@ function updateProgress(){
 
   document.getElementById("progressText")
     .innerText =
-      percent + "% complete (" +
-      completed + "/" +
-      totalPeople + ")";
+      percent +
+      "% complete (" +
+      completed +
+      "/" +
+      totalPeople +
+      ")";
 }
 
 /* 🎬 ROUND COMPLETE */
@@ -422,19 +428,22 @@ function startDraw(){
 
   running = true;
 
-  /* 🟦 SHOW ROUND TITLE */
   document.getElementById("roundTitle")
     .style.display = "block";
 
   if(!ctx) initAudio();
 
+  /* 🔀 RANDOMISE PEOPLE ORDER */
   let people = [...data.people];
 
-  /* ✅ ONLY CREATE TEAM POOL ONCE */
+  people.sort(() => Math.random() - 0.5);
+
+  /* ✅ CREATE TEAM POOL ONCE */
   if(remainingTeams.length === 0){
 
     remainingTeams =
       [...data.teams.map(t => t.name)];
+
   }
 
   totalPeople = people.length;
@@ -469,7 +478,7 @@ function startDraw(){
 
     const person = people[i];
 
-    /* ✅ USE REMAINING TEAM POOL */
+    /* ✅ UNIQUE TEAM DRAW */
     const team = remainingTeams.splice(
       Math.floor(
         Math.random() * remainingTeams.length
@@ -484,7 +493,8 @@ function startDraw(){
 
     setTimeout(() => {
 
-      const flag = flags[team] || "🏳️";
+      const flag =
+        flags[team] || "🏳️";
 
       document.getElementById("result")
         .innerText =
@@ -595,7 +605,6 @@ function resetDraw(){
 
   paused = false;
 
-  /* ✅ RESET TEAM POOL */
   remainingTeams = [];
 
   document.getElementById("roundTitle")
@@ -615,7 +624,7 @@ function resetDraw(){
   alert("Reset complete");
 }
 
-/* 📦 LOAD JSON */
+/* 📦 LOAD */
 fetch("teams.json")
   .then(r => r.json())
   .then(j => data = j);

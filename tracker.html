@@ -33,10 +33,19 @@
     td {
       padding: 14px;
       border-top: 1px solid rgba(255,255,255,0.08);
+      vertical-align: middle;
     }
 
     tr:hover {
       background: rgba(255,255,255,0.03);
+    }
+
+    input {
+      width: 80px;
+      padding: 6px;
+      border-radius: 6px;
+      border: none;
+      text-align: center;
     }
 
     .controls {
@@ -53,12 +62,18 @@
       margin-right: 10px;
     }
 
-    input {
-      width: 80px;
-      padding: 6px;
-      border-radius: 6px;
-      border: none;
-      text-align: center;
+    .teamCell {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .flag {
+      width: 26px;
+      height: 18px;
+      border-radius: 3px;
+      object-fit: cover;
+      box-shadow: 0 0 2px rgba(0,0,0,0.4);
     }
 
     .topbar {
@@ -88,9 +103,9 @@
     <tr>
       <th>Person</th>
       <th>Team 1</th>
-      <th>Team 1 Goals Conceded</th>
+      <th>Team 1 Goals</th>
       <th>Team 2</th>
-      <th>Team 2 Goals Conceded</th>
+      <th>Team 2 Goals</th>
     </tr>
   </thead>
 
@@ -108,6 +123,59 @@ let savedGoals = JSON.parse(
   localStorage.getItem("goalsConceded")
 ) || {};
 
+/* 🌍 FLAG MAP (ISO → FlagCDN code) */
+const flags = {
+  "Argentina":"ar",
+  "Brazil":"br",
+  "England":"gb-eng",
+  "France":"fr",
+  "Germany":"de",
+  "Spain":"es",
+  "Portugal":"pt",
+  "Netherlands":"nl",
+  "USA":"us",
+  "Mexico":"mx",
+  "Canada":"ca",
+  "Belgium":"be",
+  "Croatia":"hr",
+  "Switzerland":"ch",
+  "Denmark":"dk",
+  "Austria":"at",
+  "Serbia":"rs",
+  "Ukraine":"ua",
+  "Turkey":"tr",
+  "Poland":"pl",
+  "Morocco":"ma",
+  "Senegal":"sn",
+  "Nigeria":"ng",
+  "Egypt":"eg",
+  "Ghana":"gh",
+  "Cameroon":"cm",
+  "Algeria":"dz",
+  "Ivory Coast":"ci",
+  "Japan":"jp",
+  "South Korea":"kr",
+  "Iran":"ir",
+  "Saudi Arabia":"sa",
+  "Qatar":"qa",
+  "Australia":"au",
+  "Uzbekistan":"uz",
+  "Iraq":"iq",
+  "Panama":"pa",
+  "Haiti":"ht",
+  "Curaçao":"cw",
+  "Cape Verde":"cv",
+  "DR Congo":"cd",
+  "Tunisia":"tn"
+};
+
+function flag(team){
+  const code = flags[team];
+  return code
+    ? `https://flagcdn.com/w40/${code}.png`
+    : "";
+}
+
 const tbody = document.getElementById("trackerBody");
 
 Object.keys(results)
@@ -117,31 +185,34 @@ Object.keys(results)
     const t1 = savedGoals[name]?.team1 || 0;
     const t2 = savedGoals[name]?.team2 || 0;
 
+    const team1 = results[name].team1;
+    const team2 = results[name].team2;
+
     const row = document.createElement("tr");
 
     row.innerHTML = `
       <td>${name}</td>
 
-      <td>${results[name].team1}</td>
-
       <td>
-        <input
-          type="number"
-          id="t1-${name}"
-          value="${t1}"
-          min="0"
-        >
+        <div class="teamCell">
+          <img class="flag" src="${flag(team1)}">
+          <span>${team1}</span>
+        </div>
       </td>
 
-      <td>${results[name].team2}</td>
+      <td>
+        <input type="number" id="t1-${name}" value="${t1}" min="0">
+      </td>
 
       <td>
-        <input
-          type="number"
-          id="t2-${name}"
-          value="${t2}"
-          min="0"
-        >
+        <div class="teamCell">
+          <img class="flag" src="${flag(team2)}">
+          <span>${team2}</span>
+        </div>
+      </td>
+
+      <td>
+        <input type="number" id="t2-${name}" value="${t2}" min="0">
       </td>
     `;
 

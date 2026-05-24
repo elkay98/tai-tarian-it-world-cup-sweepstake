@@ -128,6 +128,7 @@ let paused = false;
 let running = false;
 
 const TOTAL = 48;
+const DRAW_SPEED = 2000; // ✅ 2 seconds per draw
 
 /* ---------------- FLAGS ---------------- */
 const flags = {
@@ -168,11 +169,12 @@ function startDraw(){
 
   document.getElementById("feed").innerHTML = "";
   document.getElementById("progressBar").style.width = "0%";
+  document.getElementById("roundLabel").innerText = "Round 1";
 
   runLoop();
 }
 
-/* ---------------- MAIN LOOP (PAUSE SAFE) ---------------- */
+/* ---------------- MAIN LOOP ---------------- */
 function runLoop(){
 
   if(!running) return;
@@ -188,7 +190,7 @@ function runLoop(){
       round = 2;
       i = 0;
       document.getElementById("roundLabel").innerText = "ROUND 1 COMPLETE";
-      setTimeout(runLoop, 1000);
+      setTimeout(runLoop, 1200);
       return;
     }
 
@@ -228,16 +230,13 @@ function runLoop(){
   document.getElementById("progressBar").style.width =
     (Object.keys(results).length*2 / TOTAL * 100) + "%";
 
-  setTimeout(runLoop, 700);
+  setTimeout(runLoop, DRAW_SPEED); // ✅ 2 seconds here
 }
 
-/* ---------------- PAUSE / RESUME FIXED ---------------- */
+/* ---------------- PAUSE ---------------- */
 function togglePause(){
   paused = !paused;
-
-  if(!paused && running){
-    runLoop();
-  }
+  if(!paused && running) runLoop();
 }
 
 /* ---------------- RANDOMISE ---------------- */

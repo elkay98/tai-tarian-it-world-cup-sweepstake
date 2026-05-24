@@ -45,6 +45,14 @@
       font-weight:bold;
     }
 
+    /* PROGRESS TEXT BLOCK */
+    #progressText {
+      margin-top:8px;
+      font-size:14px;
+      opacity:0.95;
+      line-height:1.4;
+    }
+
     #progressWrapper {
       margin-top:12px;
       height:10px;
@@ -82,7 +90,6 @@
       margin:0 6px;
     }
 
-    /* 🔥 FULL SCREEN ROUND OVERLAY */
     #overlay {
       position:fixed;
       top:0;
@@ -118,6 +125,8 @@
       <button onclick="randomiseDraw()">Randomise</button>
       <button onclick="reset()">Reset</button>
 
+      <div id="progressText"></div>
+
       <div id="progressWrapper">
         <div id="progressBar"></div>
       </div>
@@ -136,7 +145,6 @@
 <script>
 
 let data;
-
 let people = [];
 let teams = [];
 
@@ -187,6 +195,8 @@ function startDraw(){
   document.getElementById("feed").innerHTML = "";
   document.getElementById("progressBar").style.width = "0%";
 
+  updateProgress(0);
+
   runLoop(people, round1Teams, round2Teams);
 }
 
@@ -208,12 +218,10 @@ function runLoop(allPeople, round1Teams, round2Teams){
       round = 2;
       i = 0;
 
-      /* 🔥 FULL SCREEN OVERLAY */
-      const overlay = document.getElementById("overlay");
-      overlay.style.display = "flex";
+      document.getElementById("overlay").style.display = "flex";
 
       setTimeout(()=>{
-        overlay.style.display = "none";
+        document.getElementById("overlay").style.display = "none";
         runLoop(allPeople, round1Teams, round2Teams);
       }, 3000);
 
@@ -243,19 +251,32 @@ function runLoop(allPeople, round1Teams, round2Teams){
   const div = document.createElement("div");
   div.className = "card";
 
-  /* ✅ ONLY CHANGE: ADD TEAM LABELS */
   div.innerHTML =
-    (round === 1 ? "Team 1: " : "Team 2: ") +
     `${person.name} → ${getFlagImg(team)} ${team}`;
 
   document.getElementById("feed").prepend(div);
 
   i++;
 
-  document.getElementById("progressBar").style.width =
-    (Object.keys(results).length * 2 / 48 * 100) + "%";
+  updateProgress(i);
 
   setTimeout(()=>runLoop(allPeople, round1Teams, round2Teams), DRAW_SPEED);
+}
+
+/* ---------------- PROGRESS (NEW LOGIC) ---------------- */
+function updateProgress(done){
+
+  const total = 48;
+  const remaining = total - done;
+  const percent = Math.round((done / total) * 100);
+
+  const displayStart = round === 1 ? 0 : 24;
+  const displayDone = displayStart + done;
+
+  document.getElementById("progressText").innerHTML =
+    `${displayDone}/48 teams<br>${remaining} remaining<br>${percent}% complete`;
+
+  document.getElementById("progressBar").style.width = percent + "%";
 }
 
 /* ---------------- PAUSE ---------------- */
@@ -290,6 +311,9 @@ function randomiseDraw(){
   });
 
   document.getElementById("progressBar").style.width = "100%";
+  document.getElementById("progressText").innerHTML =
+    `48/48 teams<br>0 remaining<br>100% complete`;
+
   document.getElementById("roundLabel").innerText = "DRAW COMPLETE";
 
   save();
@@ -307,6 +331,9 @@ function finish(){
   save();
 
   document.getElementById("progressBar").style.width = "100%";
+  document.getElementById("progressText").innerHTML =
+    `48/48 teams<br>0 remaining<br>100% complete`;
+
   document.getElementById("roundLabel").innerText = "DRAW COMPLETE";
 
   document.getElementById("result").innerHTML = `

@@ -54,7 +54,7 @@
     }
 
     input {
-      width: 70px;
+      width: 80px;
       padding: 6px;
       border-radius: 6px;
       border: none;
@@ -66,11 +66,6 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 25px;
-    }
-
-    .total {
-      font-weight: bold;
-      text-align: center;
     }
   </style>
 </head>
@@ -93,10 +88,9 @@
     <tr>
       <th>Person</th>
       <th>Team 1</th>
+      <th>Team 1 Goals Conceded</th>
       <th>Team 2</th>
-      <th>Goals Conceded (Team 1)</th>
-      <th>Goals Conceded (Team 2)</th>
-      <th>Total</th>
+      <th>Team 2 Goals Conceded</th>
     </tr>
   </thead>
 
@@ -120,8 +114,8 @@ Object.keys(results)
   .sort()
   .forEach(name => {
 
-    const team1Goals = savedGoals[name]?.team1 || 0;
-    const team2Goals = savedGoals[name]?.team2 || 0;
+    const t1 = savedGoals[name]?.team1 || 0;
+    const t2 = savedGoals[name]?.team2 || 0;
 
     const row = document.createElement("tr");
 
@@ -129,26 +123,25 @@ Object.keys(results)
       <td>${name}</td>
 
       <td>${results[name].team1}</td>
+
+      <td>
+        <input
+          type="number"
+          id="t1-${name}"
+          value="${t1}"
+          min="0"
+        >
+      </td>
+
       <td>${results[name].team2}</td>
 
       <td>
-        <input type="number"
-          id="t1-${name}"
-          value="${team1Goals}"
-          min="0"
-        >
-      </td>
-
-      <td>
-        <input type="number"
+        <input
+          type="number"
           id="t2-${name}"
-          value="${team2Goals}"
+          value="${t2}"
           min="0"
         >
-      </td>
-
-      <td class="total" id="total-${name}">
-        ${team1Goals + team2Goals}
       </td>
     `;
 
@@ -193,13 +186,11 @@ function resetGoals(){
     document.getElementById("t1-" + name).value = 0;
     document.getElementById("t2-" + name).value = 0;
 
-    document.getElementById("total-" + name).innerText = 0;
-
   });
 
-  localStorage.removeItem("goalsConceded");
-
   savedGoals = {};
+
+  localStorage.removeItem("goalsConceded");
 
   alert("Goals reset");
 }

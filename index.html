@@ -88,12 +88,6 @@
       border-radius: 10px;
     }
 
-    #roundTitle {
-      font-size: 18px;
-      opacity: 0.8;
-      margin-bottom: 10px;
-    }
-
     #progressWrapper {
       margin-top: 12px;
       width: 100%;
@@ -125,6 +119,7 @@
       <div id="mainFlag"></div>
 
       <button onclick="startDraw()">Start Draw</button>
+      <button onclick="randomiseDraw()">Randomise Draw</button>
       <button onclick="resetDraw()">Reset</button>
 
       <div id="progressWrapper">
@@ -197,11 +192,10 @@ const flags = {
 
 function flag(team){
   const code = flags[team];
-  return code
-    ? `https://flagcdn.com/w40/${code}.png`
-    : "";
+  return code ? `https://flagcdn.com/w40/${code}.png` : "";
 }
 
+/* 🎬 NORMAL ANIMATED DRAW */
 function startDraw(){
 
   let people = [...data.people];
@@ -211,7 +205,9 @@ function startDraw(){
     remainingTeams = data.teams.map(t => t.name);
   }
 
-  function step(i){
+  let i = 0;
+
+  function step(){
 
     if(i >= people.length) return;
 
@@ -222,39 +218,76 @@ function startDraw(){
       1
     )[0];
 
-    if(!finalResults[person.name]){
-      finalResults[person.name] = { team1:"", team2:"" };
-    }
+    assignResult(person, team);
 
-    finalResults[person.name].team1 = finalResults[person.name].team1 || team;
-    if(finalResults[person.name].team1 !== team){
-      finalResults[person.name].team2 = team;
-    }
+    i++;
+    setTimeout(step, 1500);
+  }
 
+  step();
+}
+
+/* ⚡ INSTANT FULL RANDOM DRAW */
+function randomiseDraw(){
+
+  let people = [...data.people];
+  people.sort(() => Math.random() - 0.5);
+
+  let teams = [...data.teams.map(t => t.name)];
+
+  finalResults = {};
+  remainingTeams = [...teams];
+  completed = 0;
+
+  people.forEach(person => {
+
+    const team = teams.splice(
+      Math.floor(Math.random() * teams.length),
+      1
+    )[0];
+
+    assignResult(person, team, true);
+
+  });
+
+  document.getElementById("progressBar").style.width = "100%";
+}
+
+/* 🧠 CORE ASSIGNMENT */
+function assignResult(person, team, instant=false){
+
+  if(!finalResults[person.name]){
+    finalResults[person.name] = { team1:"", team2:"" };
+  }
+
+  finalResults[person.name].team1 =
+    finalResults[person.name].team1 || team;
+
+  if(finalResults[person.name].team1 !== team){
+    finalResults[person.name].team2 = team;
+  }
+
+  const div = document.createElement("div");
+  div.className = "card";
+
+  div.innerHTML =
+    person.name + " → " +
+    `<img class="flag" src="${flag(team)}"> ` +
+    team;
+
+  document.getElementById("feed").prepend(div);
+
+  completed++;
+
+  document.getElementById("progressBar").style.width =
+    (completed / data.people.length * 100) + "%";
+
+  if(!instant){
     document.getElementById("result").innerHTML =
       person.name + " → " +
       `<img class="flag" src="${flag(team)}"> ` +
       team;
-
-    const div = document.createElement("div");
-    div.className = "card";
-
-    div.innerHTML =
-      person.name + " → " +
-      `<img class="flag" src="${flag(team)}"> ` +
-      team;
-
-    document.getElementById("feed").prepend(div);
-
-    completed++;
-
-    document.getElementById("progressBar").style.width =
-      (completed / people.length * 100) + "%";
-
-    setTimeout(() => step(i+1), 1500);
   }
-
-  step(0);
 }
 
 function resetDraw(){

@@ -1,127 +1,216 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>World Cup Tracker</title>
+  <title>Live Sweepstake Tracker</title>
 
   <style>
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #0f172a;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
       color: white;
-      padding: 30px;
+      padding: 40px;
     }
 
     h1 {
-      text-align: center;
       margin-bottom: 30px;
     }
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 15px;
-    }
-
-    .card {
+    table {
+      width: 100%;
+      border-collapse: collapse;
       background: rgba(255,255,255,0.05);
-      padding: 15px;
-      border-radius: 12px;
+      border-radius: 10px;
+      overflow: hidden;
     }
 
-    .name {
+    th {
+      background: rgba(255,255,255,0.1);
+      padding: 14px;
+      text-align: left;
+    }
+
+    td {
+      padding: 14px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    tr:hover {
+      background: rgba(255,255,255,0.03);
+    }
+
+    .goals {
       font-weight: bold;
-      margin-bottom: 10px;
-      font-size: 16px;
-    }
-
-    .team {
-      font-size: 14px;
-      margin: 4px 0;
-    }
-
-    .empty {
-      opacity: 0.5;
-    }
-
-    .round {
       text-align: center;
+    }
+
+    .controls {
       margin-bottom: 20px;
-      opacity: 0.8;
+    }
+
+    button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      background: #3b82f6;
+      color: white;
+      margin-right: 10px;
+    }
+
+    input {
+      width: 70px;
+      padding: 6px;
+      border-radius: 6px;
+      border: none;
+      text-align: center;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
     }
   </style>
 </head>
 
 <body>
 
-<h1>⚽ Live World Cup Tracker</h1>
+<div class="topbar">
 
-<div id="round" class="round"></div>
+  <h1>📊 Live World Cup Tracker</h1>
 
-<div id="grid" class="grid"></div>
+  <button onclick="goBack()">
+    Back To Draw
+  </button>
 
-<!-- ================= FIREBASE ================= -->
+</div>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
+<div class="controls">
+
+  <button onclick="saveGoals()">
+    Save Goals
+  </button>
+
+  <button onclick="resetGoals()">
+    Reset Goals
+  </button>
+
+</div>
+
+<table>
+
+  <thead>
+
+    <tr>
+      <th>Person</th>
+      <th>Team 1</th>
+      <th>Team 2</th>
+      <th>Goals Conceded</th>
+    </tr>
+
+  </thead>
+
+  <tbody id="trackerBody"></tbody>
+
+</table>
 
 <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyDgzUhc-cVSoPAejfxV-pHUC2jAZIxTAXw",
-    authDomain: "tt-world-cup-sweepstake.firebaseapp.com",
-    projectId: "tt-world-cup-sweepstake",
-    storageBucket: "tt-world-cup-sweepstake.firebasestorage.app",
-    messagingSenderId: "786742826315",
-    appId: "1:786742826315:web:9fd75b68ad277f5173c4ce"
-  };
+const results = JSON.parse(
+  localStorage.getItem("sweepstakeResults")
+);
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-</script>
+let savedGoals = JSON.parse(
+  localStorage.getItem("goalsConceded")
+) || {};
 
-<!-- ================= LIVE LISTENER ================= -->
+const tbody =
+  document.getElementById("trackerBody");
 
-<script>
+Object.keys(results)
+  .sort()
+  .forEach(name => {
 
-function render(data) {
-  const grid = document.getElementById("grid");
-  const roundBox = document.getElementById("round");
+    const currentGoals =
+      savedGoals[name] || 0;
 
-  roundBox.innerHTML = `Round ${data.round || 1}`;
+    const row =
+      document.createElement("tr");
 
-  grid.innerHTML = "";
+    row.innerHTML = `
+      <td>${name}</td>
 
-  data.people.forEach(p => {
+      <td>${results[name].team1}</td>
 
-    const card = document.createElement("div");
-    card.className = "card";
+      <td>${results[name].team2}</td>
 
-    let html = `<div class="name">${p.name}</div>`;
+      <td class="goals">
 
-    if (p.teams.length === 0) {
-      html += `<div class="team empty">No teams yet</div>`;
-    } else {
-      p.teams.forEach(t => {
-        html += `<div class="team">⚽ ${t}</div>`;
-      });
-    }
+        <input
+          type="number"
+          min="0"
+          value="${currentGoals}"
+          id="goals-${name}"
+        >
 
-    card.innerHTML = html;
-    grid.appendChild(card);
+      </td>
+    `;
+
+    tbody.appendChild(row);
   });
+
+/* 💾 SAVE GOALS */
+function saveGoals(){
+
+  Object.keys(results)
+    .forEach(name => {
+
+      const value =
+        document.getElementById(
+          "goals-" + name
+        ).value;
+
+      savedGoals[name] =
+        parseInt(value) || 0;
+    });
+
+  localStorage.setItem(
+    "goalsConceded",
+    JSON.stringify(savedGoals)
+  );
+
+  alert("Goals saved");
 }
 
-// 🔥 LIVE FIREBASE LISTENER
-db.collection("draw").doc("current")
-  .onSnapshot(doc => {
+/* 🧨 RESET GOALS */
+function resetGoals(){
 
-    if (!doc.exists) return;
+  if(!confirm("Reset all goals?")) return;
 
-    const data = doc.data();
-    render(data);
+  Object.keys(results)
+    .forEach(name => {
 
-  });
+      document.getElementById(
+        "goals-" + name
+      ).value = 0;
 
+    });
+
+  savedGoals = {};
+
+  localStorage.removeItem(
+    "goalsConceded"
+  );
+
+  alert("Goals reset");
+}
+
+/* 🔙 BACK */
+function goBack(){
+
+  window.location.href = "index.html";
+}
 </script>
 
 </body>

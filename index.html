@@ -72,6 +72,14 @@
       margin-bottom:8px;
       border-radius:10px;
     }
+
+    .flag {
+      width:28px;
+      height:20px;
+      border-radius:3px;
+      vertical-align:middle;
+      margin:0 6px;
+    }
   </style>
 </head>
 
@@ -82,7 +90,7 @@
   <div class="left">
     <div class="container">
 
-      <h2>⚽ Sweepstake</h2>
+      <h2>⚽ T&I World Cup 2026 Sweepstake</h2>
 
       <div id="roundLabel">Ready</div>
 
@@ -120,7 +128,7 @@ let paused = false;
 
 const TOTAL = 48;
 
-/* ---------------- FLAGS ---------------- */
+/* ---------------- FLAGS (RESTORED SAFE VERSION) ---------------- */
 const flags = {
   "Argentina":"ar","Brazil":"br","England":"gb-eng","France":"fr",
   "Germany":"de","Spain":"es","Portugal":"pt","Netherlands":"nl",
@@ -135,8 +143,10 @@ const flags = {
   "DR Congo":"cd","Tunisia":"tn"
 };
 
-function flag(team){
-  return `https://flagcdn.com/w40/${flags[team]}.png`;
+function getFlagImg(team){
+  const code = flags[team];
+  if(!code) return "";
+  return `<img class="flag" src="https://flagcdn.com/w40/${code}.png">`;
 }
 
 /* ---------------- SAVE ---------------- */
@@ -147,12 +157,10 @@ function save(){
 /* ---------------- START DRAW ---------------- */
 function startDraw(){
 
-  people = [...data.people].sort(() => Math.random()-0.5);
+  people = [...data.people].sort(()=>Math.random()-0.5);
+  teams = [...data.teams.map(t=>t.name)];
 
-  if(teams.length === 0){
-    teams = [...data.teams.map(t=>t.name)];
-  }
-
+  results = {};
   i = 0;
   round = 1;
   paused = false;
@@ -160,7 +168,7 @@ function startDraw(){
   runStep();
 }
 
-/* ---------------- STEP ---------------- */
+/* ---------------- STEP ENGINE ---------------- */
 function runStep(){
 
   if(paused) return;
@@ -180,7 +188,7 @@ function runStep(){
   }
 
   let person = people[i];
-  let team = teams.splice(Math.floor(Math.random()*teams.length),1)[0];
+  let team = teams.splice(Math.random()*teams.length|0,1)[0];
 
   if(!results[person.name]){
     results[person.name] = {team1:"",team2:""};
@@ -192,15 +200,20 @@ function runStep(){
     results[person.name].team2 = team;
   }
 
-  document.getElementById("roundLabel").innerText =
-    "Round " + round;
+  document.getElementById("roundLabel").innerText = "Round " + round;
 
-  document.getElementById("feed").prepend(
-    Object.assign(document.createElement("div"),{
-      className:"card",
-      innerHTML: person.name + " → " + team
-    })
-  );
+  const div = document.createElement("div");
+  div.className = "card";
+
+  // ✅ FIXED FLAG RENDERING (SAFE + RELIABLE)
+  div.innerHTML =
+    person.name +
+    " → " +
+    getFlagImg(team) +
+    " " +
+    team;
+
+  document.getElementById("feed").prepend(div);
 
   i++;
 
@@ -216,7 +229,7 @@ function pauseDraw(){
   if(!paused) runStep();
 }
 
-/* ---------------- RANDOMISE (FIXED) ---------------- */
+/* ---------------- RANDOMISE (FIXED + CONSOLIDATED) ---------------- */
 function randomiseDraw(){
 
   let p = [...data.people].sort(()=>Math.random()-0.5);
@@ -244,9 +257,11 @@ function randomiseDraw(){
 
 /* ---------------- FINISH ---------------- */
 function finish(){
-  save();
+
   document.getElementById("progressBar").style.width = "100%";
   document.getElementById("roundLabel").innerText = "DRAW COMPLETE";
+
+  save();
 
   document.getElementById("result").innerHTML = `
     🎉 DRAW COMPLETE<br>
@@ -255,9 +270,10 @@ function finish(){
 }
 
 function go(){
-  window.location.href="tracker.html";
+  window.location.href = "tracker.html";
 }
 
+/* ---------------- RESET ---------------- */
 function reset(){
   location.reload();
 }

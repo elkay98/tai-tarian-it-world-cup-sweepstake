@@ -12,77 +12,65 @@
       overflow: hidden;
     }
 
-    .wrapper {
-      display: flex;
-      height: 100vh;
-    }
+    .wrapper { display:flex; height:100vh; }
 
     .left {
-      width: 40%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      width:40%;
+      display:flex;
+      justify-content:center;
+      align-items:center;
     }
 
     .container {
-      text-align: center;
-      background: rgba(255,255,255,0.05);
-      padding: 40px;
-      border-radius: 20px;
-      width: 320px;
+      text-align:center;
+      background:rgba(255,255,255,0.05);
+      padding:40px;
+      border-radius:20px;
+      width:320px;
     }
 
     button {
-      padding: 10px 16px;
-      margin: 5px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      background: #3b82f6;
-      color: white;
+      padding:10px 14px;
+      margin:5px;
+      border:none;
+      border-radius:10px;
+      background:#3b82f6;
+      color:white;
+      cursor:pointer;
     }
 
-    .result {
-      margin-top: 20px;
-      font-size: 18px;
-      min-height: 60px;
-    }
-
-    .flag {
-      width: 28px;
-      height: 20px;
-      border-radius: 3px;
-      object-fit: cover;
-      box-shadow: 0 0 2px rgba(0,0,0,0.4);
-    }
-
-    .right {
-      width: 60%;
-      padding: 40px;
-      overflow-y: auto;
-    }
-
-    .card {
-      background: rgba(255,255,255,0.06);
-      padding: 12px;
-      margin-bottom: 10px;
-      border-radius: 10px;
+    #roundLabel {
+      margin:10px 0;
+      opacity:0.8;
     }
 
     #progressWrapper {
-      margin-top: 12px;
-      width: 100%;
-      background: rgba(255,255,255,0.1);
-      border-radius: 10px;
-      height: 10px;
-      overflow: hidden;
+      margin-top:12px;
+      height:10px;
+      width:100%;
+      background:rgba(255,255,255,0.1);
+      border-radius:10px;
+      overflow:hidden;
     }
 
     #progressBar {
-      height: 10px;
-      width: 0%;
-      background: #22c55e;
-      transition: width 0.4s ease;
+      height:10px;
+      width:0%;
+      background:#22c55e;
+      transition:width 0.3s;
+    }
+
+    .right {
+      width:60%;
+      padding:40px;
+      overflow-y:auto;
+    }
+
+    .card {
+      background:rgba(255,255,255,0.06);
+      padding:10px;
+      margin-bottom:8px;
+      border-radius:10px;
     }
   </style>
 </head>
@@ -92,23 +80,24 @@
 <div class="wrapper">
 
   <div class="left">
-
     <div class="container">
 
-      <h1>⚽ T&I World Cup 2026 Sweepstake</h1>
+      <h2>⚽ Sweepstake</h2>
+
+      <div id="roundLabel">Ready</div>
 
       <button onclick="startDraw()">Start Draw</button>
-      <button onclick="randomiseDraw()">Randomise Draw</button>
+      <button onclick="pauseDraw()">Pause</button>
+      <button onclick="randomiseDraw()">Randomise</button>
       <button onclick="resetDraw()">Reset</button>
 
       <div id="progressWrapper">
         <div id="progressBar"></div>
       </div>
 
-      <div id="result" class="result"></div>
+      <div id="result"></div>
 
     </div>
-
   </div>
 
   <div class="right">
@@ -120,200 +109,161 @@
 <script>
 
 let data;
-let finalResults = {};
-let completed = 0;
-let totalSteps = 48;
-let round = 1;
 
+let people = [];
+let teams = [];
+
+let results = {};
+let i = 0;
+let round = 1;
+let paused = false;
+
+const TOTAL = 48;
+
+/* ---------------- FLAGS ---------------- */
 const flags = {
-  "Argentina":"ar",
-  "Brazil":"br",
-  "England":"gb-eng",
-  "France":"fr",
-  "Germany":"de",
-  "Spain":"es",
-  "Portugal":"pt",
-  "Netherlands":"nl",
-  "USA":"us",
-  "Mexico":"mx",
-  "Canada":"ca",
-  "Belgium":"be",
-  "Croatia":"hr",
-  "Switzerland":"ch",
-  "Denmark":"dk",
-  "Austria":"at",
-  "Serbia":"rs",
-  "Ukraine":"ua",
-  "Turkey":"tr",
-  "Poland":"pl",
-  "Morocco":"ma",
-  "Senegal":"sn",
-  "Nigeria":"ng",
-  "Egypt":"eg",
-  "Ghana":"gh",
-  "Cameroon":"cm",
-  "Algeria":"dz",
-  "Ivory Coast":"ci",
-  "Japan":"jp",
-  "South Korea":"kr",
-  "Iran":"ir",
-  "Saudi Arabia":"sa",
-  "Qatar":"qa",
-  "Australia":"au",
-  "Uzbekistan":"uz",
-  "Iraq":"iq",
-  "Panama":"pa",
-  "Haiti":"ht",
-  "Curaçao":"cw",
-  "Cape Verde":"cv",
-  "DR Congo":"cd",
-  "Tunisia":"tn"
+  "Argentina":"ar","Brazil":"br","England":"gb-eng","France":"fr",
+  "Germany":"de","Spain":"es","Portugal":"pt","Netherlands":"nl",
+  "USA":"us","Mexico":"mx","Canada":"ca","Belgium":"be",
+  "Croatia":"hr","Switzerland":"ch","Denmark":"dk","Austria":"at",
+  "Serbia":"rs","Ukraine":"ua","Turkey":"tr","Poland":"pl",
+  "Morocco":"ma","Senegal":"sn","Nigeria":"ng","Egypt":"eg",
+  "Ghana":"gh","Cameroon":"cm","Algeria":"dz","Ivory Coast":"ci",
+  "Japan":"jp","South Korea":"kr","Iran":"ir","Saudi Arabia":"sa",
+  "Qatar":"qa","Australia":"au","Uzbekistan":"uz","Iraq":"iq",
+  "Panama":"pa","Haiti":"ht","Curaçao":"cw","Cape Verde":"cv",
+  "DR Congo":"cd","Tunisia":"tn"
 };
 
 function flag(team){
-  const code = flags[team];
-  return code ? `https://flagcdn.com/w40/${code}.png` : "";
+  return `https://flagcdn.com/w40/${flags[team]}.png`;
 }
 
-/* 💾 SAVE */
-function saveResultsToStorage(){
-  localStorage.setItem(
-    "sweepstakeResults",
-    JSON.stringify(finalResults)
-  );
+/* ---------------- SAVE ---------------- */
+function save(){
+  localStorage.setItem("sweepstakeResults", JSON.stringify(results));
 }
 
-/* 🎬 START DRAW (2 ROUND SYSTEM) */
+/* ---------------- START DRAW ---------------- */
 function startDraw(){
 
-  let people = [...data.people];
-  people.sort(() => Math.random() - 0.5);
+  people = [...data.people].sort(() => Math.random()-0.5);
 
-  let teams = [...data.teams.map(t => t.name)];
-
-  finalResults = {};
-  completed = 0;
-  round = 1;
-
-  function runRound(){
-
-    let i = 0;
-
-    function step(){
-
-      if(i >= people.length){
-
-        if(round === 1){
-          round = 2;
-          document.getElementById("result").innerHTML =
-            "🔥 ROUND 1 COMPLETE";
-          setTimeout(runRound, 1200);
-        } else {
-          finishDraw();
-        }
-        return;
-      }
-
-      const person = people[i];
-
-      const team = teams.splice(
-        Math.floor(Math.random() * teams.length),
-        1
-      )[0];
-
-      if(!finalResults[person.name]){
-        finalResults[person.name] = { team1:"", team2:"" };
-      }
-
-      if(round === 1){
-        finalResults[person.name].team1 = team;
-      } else {
-        finalResults[person.name].team2 = team;
-      }
-
-      completed++;
-
-      document.getElementById("progressBar").style.width =
-        (completed / totalSteps * 100) + "%";
-
-      const div = document.createElement("div");
-      div.className = "card";
-      div.innerHTML = person.name + " → " + team;
-
-      document.getElementById("feed").prepend(div);
-
-      i++;
-      setTimeout(step, 900);
-    }
-
-    step();
+  if(teams.length === 0){
+    teams = [...data.teams.map(t=>t.name)];
   }
 
-  runRound();
+  i = 0;
+  round = 1;
+  paused = false;
+
+  runStep();
 }
 
-/* ⚡ INSTANT DRAW (ALSO FIXED) */
-function randomiseDraw(){
+/* ---------------- STEP ---------------- */
+function runStep(){
 
-  let people = [...data.people];
-  people.sort(() => Math.random() - 0.5);
+  if(paused) return;
 
-  let teams = [...data.teams.map(t => t.name)];
+  if(i >= people.length){
 
-  finalResults = {};
-  completed = 0;
-  round = 1;
-
-  people.forEach(person => {
-
-    if(!finalResults[person.name]){
-      finalResults[person.name] = { team1:"", team2:"" };
+    if(round === 1){
+      round = 2;
+      i = 0;
+      document.getElementById("roundLabel").innerText = "ROUND 1 COMPLETE";
+      setTimeout(runStep, 1200);
+      return;
     }
 
-    finalResults[person.name].team1 =
-      teams.splice(Math.floor(Math.random()*teams.length),1)[0];
+    finish();
+    return;
+  }
 
-    finalResults[person.name].team2 =
-      teams.splice(Math.floor(Math.random()*teams.length),1)[0];
+  let person = people[i];
+  let team = teams.splice(Math.floor(Math.random()*teams.length),1)[0];
 
-    completed += 2;
+  if(!results[person.name]){
+    results[person.name] = {team1:"",team2:""};
+  }
+
+  if(round === 1){
+    results[person.name].team1 = team;
+  } else {
+    results[person.name].team2 = team;
+  }
+
+  document.getElementById("roundLabel").innerText =
+    "Round " + round;
+
+  document.getElementById("feed").prepend(
+    Object.assign(document.createElement("div"),{
+      className:"card",
+      innerHTML: person.name + " → " + team
+    })
+  );
+
+  i++;
+
+  document.getElementById("progressBar").style.width =
+    (Object.keys(results).length*2 / TOTAL * 100) + "%";
+
+  setTimeout(runStep, 800);
+}
+
+/* ---------------- PAUSE ---------------- */
+function pauseDraw(){
+  paused = !paused;
+  if(!paused) runStep();
+}
+
+/* ---------------- RANDOMISE (FIXED) ---------------- */
+function randomiseDraw(){
+
+  let p = [...data.people].sort(()=>Math.random()-0.5);
+  let t = [...data.teams.map(x=>x.name)];
+
+  results = {};
+
+  p.forEach(person=>{
+    results[person.name] = {
+      team1: t.splice(Math.random()*t.length|0,1)[0],
+      team2: t.splice(Math.random()*t.length|0,1)[0]
+    };
   });
 
   document.getElementById("progressBar").style.width = "100%";
+  document.getElementById("roundLabel").innerText = "DRAW COMPLETE";
 
-  saveResultsToStorage();
-
-  finishDraw();
-}
-
-/* 🏁 FINISH STATE */
-function finishDraw(){
-
-  document.getElementById("progressBar").style.width = "100%";
-
-  saveResultsToStorage();
+  save();
 
   document.getElementById("result").innerHTML = `
     🎉 DRAW COMPLETE<br>
-    <button onclick="goToTracker()" style="margin-top:10px;">
-      Go to Live Tracker
-    </button>
+    <button onclick="go()">Go to Tracker</button>
   `;
 }
 
-/* 🔗 TRACKER */
-function goToTracker(){
-  window.location.href = "tracker.html";
+/* ---------------- FINISH ---------------- */
+function finish(){
+  save();
+  document.getElementById("progressBar").style.width = "100%";
+  document.getElementById("roundLabel").innerText = "DRAW COMPLETE";
+
+  document.getElementById("result").innerHTML = `
+    🎉 DRAW COMPLETE<br>
+    <button onclick="go()">Go to Tracker</button>
+  `;
 }
 
-/* 🔁 RESET */
-function resetDraw(){
+function go(){
+  window.location.href="tracker.html";
+}
+
+function reset(){
   location.reload();
 }
 
-fetch("teams.json")
-  .then(r => r.json())
-  .then(j => data = j);
+/* ---------------- LOAD ---------------- */
+fetch("teams.json").then(r=>r.json()).then(j=>data=j);
 
 </script>
 

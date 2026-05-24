@@ -95,7 +95,7 @@
       <div id="roundLabel">Ready</div>
 
       <button onclick="startDraw()">Start Draw</button>
-      <button onclick="pauseDraw()">Pause</button>
+      <button onclick="togglePause()">Pause / Resume</button>
       <button onclick="randomiseDraw()">Randomise</button>
       <button onclick="reset()">Reset</button>
 
@@ -125,6 +125,7 @@ let results = {};
 let i = 0;
 let round = 1;
 let paused = false;
+let running = false;
 
 const TOTAL = 48;
 
@@ -145,8 +146,7 @@ const flags = {
 
 function getFlagImg(team){
   const code = flags[team];
-  if(!code) return "";
-  return `<img class="flag" src="https://flagcdn.com/w40/${code}.png">`;
+  return code ? `<img class="flag" src="https://flagcdn.com/w40/${code}.png">` : "";
 }
 
 /* ---------------- SAVE ---------------- */
@@ -154,7 +154,7 @@ function save(){
   localStorage.setItem("sweepstakeResults", JSON.stringify(results));
 }
 
-/* ---------------- START DRAW ---------------- */
+/* ---------------- START ---------------- */
 function startDraw(){
 
   people = [...data.people].sort(()=>Math.random()-0.5);
@@ -164,14 +164,23 @@ function startDraw(){
   i = 0;
   round = 1;
   paused = false;
+  running = true;
 
-  runStep();
+  document.getElementById("feed").innerHTML = "";
+  document.getElementById("progressBar").style.width = "0%";
+
+  runLoop();
 }
 
-/* ---------------- STEP ENGINE ---------------- */
-function runStep(){
+/* ---------------- MAIN LOOP (PAUSE SAFE) ---------------- */
+function runLoop(){
 
-  if(paused) return;
+  if(!running) return;
+
+  if(paused){
+    setTimeout(runLoop, 300);
+    return;
+  }
 
   if(i >= people.length){
 
@@ -179,7 +188,7 @@ function runStep(){
       round = 2;
       i = 0;
       document.getElementById("roundLabel").innerText = "ROUND 1 COMPLETE";
-      setTimeout(runStep, 1200);
+      setTimeout(runLoop, 1000);
       return;
     }
 
@@ -219,13 +228,16 @@ function runStep(){
   document.getElementById("progressBar").style.width =
     (Object.keys(results).length*2 / TOTAL * 100) + "%";
 
-  setTimeout(runStep, 800);
+  setTimeout(runLoop, 700);
 }
 
-/* ---------------- PAUSE ---------------- */
-function pause(){
+/* ---------------- PAUSE / RESUME FIXED ---------------- */
+function togglePause(){
   paused = !paused;
-  if(!paused) runStep();
+
+  if(!paused && running){
+    runLoop();
+  }
 }
 
 /* ---------------- RANDOMISE ---------------- */
@@ -257,10 +269,11 @@ function randomiseDraw(){
 /* ---------------- FINISH ---------------- */
 function finish(){
 
+  running = false;
+  save();
+
   document.getElementById("progressBar").style.width = "100%";
   document.getElementById("roundLabel").innerText = "DRAW COMPLETE";
-
-  save();
 
   document.getElementById("result").innerHTML = `
     🎉 DRAW COMPLETE<br>
@@ -272,25 +285,23 @@ function go(){
   window.location.href="tracker.html";
 }
 
-/* ---------------- RESET (FIXED PROPERLY) ---------------- */
+/* ---------------- RESET ---------------- */
 function reset(){
 
-  // clear saved tracker data
   localStorage.removeItem("sweepstakeResults");
 
-  // reset all state
   people = [];
   teams = [];
   results = {};
   i = 0;
   round = 1;
   paused = false;
+  running = false;
 
-  // reset UI
   document.getElementById("feed").innerHTML = "";
   document.getElementById("result").innerHTML = "";
-  document.getElementById("roundLabel").innerText = "Reset complete";
   document.getElementById("progressBar").style.width = "0%";
+  document.getElementById("roundLabel").innerText = "Reset complete";
 
   setTimeout(()=>{
     document.getElementById("roundLabel").innerText = "Ready";

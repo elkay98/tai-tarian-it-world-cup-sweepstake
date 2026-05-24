@@ -97,7 +97,7 @@
       <button onclick="startDraw()">Start Draw</button>
       <button onclick="pauseDraw()">Pause</button>
       <button onclick="randomiseDraw()">Randomise</button>
-      <button onclick="resetDraw()">Reset</button>
+      <button onclick="reset()">Reset</button>
 
       <div id="progressWrapper">
         <div id="progressBar"></div>
@@ -128,7 +128,7 @@ let paused = false;
 
 const TOTAL = 48;
 
-/* ---------------- FLAGS (RESTORED SAFE VERSION) ---------------- */
+/* ---------------- FLAGS ---------------- */
 const flags = {
   "Argentina":"ar","Brazil":"br","England":"gb-eng","France":"fr",
   "Germany":"de","Spain":"es","Portugal":"pt","Netherlands":"nl",
@@ -205,7 +205,6 @@ function runStep(){
   const div = document.createElement("div");
   div.className = "card";
 
-  // ✅ FIXED FLAG RENDERING (SAFE + RELIABLE)
   div.innerHTML =
     person.name +
     " → " +
@@ -224,12 +223,12 @@ function runStep(){
 }
 
 /* ---------------- PAUSE ---------------- */
-function pauseDraw(){
+function pause(){
   paused = !paused;
   if(!paused) runStep();
 }
 
-/* ---------------- RANDOMISE (FIXED + CONSOLIDATED) ---------------- */
+/* ---------------- RANDOMISE ---------------- */
 function randomiseDraw(){
 
   let p = [...data.people].sort(()=>Math.random()-0.5);
@@ -270,16 +269,38 @@ function finish(){
 }
 
 function go(){
-  window.location.href = "tracker.html";
+  window.location.href="tracker.html";
 }
 
-/* ---------------- RESET ---------------- */
+/* ---------------- RESET (FIXED PROPERLY) ---------------- */
 function reset(){
-  location.reload();
+
+  // clear saved tracker data
+  localStorage.removeItem("sweepstakeResults");
+
+  // reset all state
+  people = [];
+  teams = [];
+  results = {};
+  i = 0;
+  round = 1;
+  paused = false;
+
+  // reset UI
+  document.getElementById("feed").innerHTML = "";
+  document.getElementById("result").innerHTML = "";
+  document.getElementById("roundLabel").innerText = "Reset complete";
+  document.getElementById("progressBar").style.width = "0%";
+
+  setTimeout(()=>{
+    document.getElementById("roundLabel").innerText = "Ready";
+  },1000);
 }
 
 /* ---------------- LOAD ---------------- */
-fetch("teams.json").then(r=>r.json()).then(j=>data=j);
+fetch("teams.json")
+  .then(r=>r.json())
+  .then(j=>data=j);
 
 </script>
 

@@ -61,24 +61,18 @@
       transform: scale(1);
     }
 
-    #roundTitle {
-      font-size: 18px;
-      opacity: 0.8;
-      margin-bottom: 10px;
+    .flag {
+      width: 28px;
+      height: 20px;
+      border-radius: 3px;
+      object-fit: cover;
+      box-shadow: 0 0 2px rgba(0,0,0,0.4);
     }
 
-    #roundOverlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.85);
-      display: none;
+    .teamCell {
+      display: flex;
       align-items: center;
-      justify-content: center;
-      font-size: 40px;
-      z-index: 999;
+      gap: 8px;
     }
 
     .right {
@@ -94,9 +88,10 @@
       border-radius: 10px;
     }
 
-    #adminPanel {
-      display: none;
-      margin-top: 10px;
+    #roundTitle {
+      font-size: 18px;
+      opacity: 0.8;
+      margin-bottom: 10px;
     }
 
     #progressWrapper {
@@ -106,7 +101,6 @@
       border-radius: 10px;
       height: 10px;
       overflow: hidden;
-      display: none;
     }
 
     #progressBar {
@@ -115,38 +109,10 @@
       background: #22c55e;
       transition: width 0.4s ease;
     }
-
-    #progressText {
-      font-size: 12px;
-      margin-top: 6px;
-      opacity: 0.8;
-      display: none;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: rgba(255,255,255,0.05);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    th {
-      background: rgba(255,255,255,0.1);
-      padding: 12px;
-      text-align: left;
-    }
-
-    td {
-      padding: 12px;
-      border-top: 1px solid rgba(255,255,255,0.08);
-    }
   </style>
 </head>
 
 <body>
-
-<div id="roundOverlay">ROUND COMPLETE</div>
 
 <div class="wrapper">
 
@@ -154,49 +120,15 @@
 
     <div class="container">
 
-      <div id="roundTitle" style="display:none;">
-        Round 1
-      </div>
-
       <h1>⚽ T&I World Cup 2026 Sweepstake</h1>
 
-      <div id="mainFlag">🏳️</div>
+      <div id="mainFlag"></div>
 
-      <input
-        type="password"
-        id="adminPass"
-        placeholder="Admin password"
-      >
-
-      <button onclick="unlockAdmin()">
-        Unlock
-      </button>
-
-      <div id="adminPanel">
-
-        <button onclick="startDraw()">
-          Start Draw
-        </button>
-
-        <button
-          onclick="togglePause()"
-          id="pauseBtn"
-        >
-          Pause
-        </button>
-
-        <button onclick="resetDraw()">
-          Reset
-        </button>
-
-      </div>
+      <button onclick="startDraw()">Start Draw</button>
+      <button onclick="resetDraw()">Reset</button>
 
       <div id="progressWrapper">
         <div id="progressBar"></div>
-      </div>
-
-      <div id="progressText">
-        0% complete
       </div>
 
       <div id="result" class="result"></div>
@@ -212,526 +144,127 @@
 </div>
 
 <script>
+
 let data;
-
-let running = false;
-let paused = false;
-let ctx;
-
-let totalPeople = 0;
+let remainingTeams = [];
+let finalResults = {};
 let completed = 0;
 
-let round = 1;
-const MAX_ROUNDS = 2;
-
-let remainingTeams = [];
-
-let finalResults = {};
-
-const ADMIN_PASSWORD = 'TTWCSweep2026-!"£';
-
-/* 🔐 ADMIN */
-function unlockAdmin(){
-
-  const input =
-    document.getElementById("adminPass").value;
-
-  if(input === ADMIN_PASSWORD){
-
-    document.getElementById("adminPass")
-      .style.display = "none";
-
-    document.querySelector(
-      "button[onclick='unlockAdmin()']"
-    ).style.display = "none";
-
-    document.getElementById("adminPanel")
-      .style.display = "block";
-
-    document.getElementById("progressWrapper")
-      .style.display = "block";
-
-    document.getElementById("progressText")
-      .style.display = "block";
-
-  } else {
-
-    alert("Wrong password");
-
-  }
-}
-
-/* ⏸ PAUSE */
-function togglePause(){
-
-  paused = !paused;
-
-  document.getElementById("pauseBtn")
-    .innerText =
-      paused ? "Resume" : "Pause";
-}
-
-/* 📊 PROGRESS */
-function updateProgress(){
-
-  const percent = Math.round(
-    (completed / totalPeople) * 100
-  );
-
-  document.getElementById("progressBar")
-    .style.width = percent + "%";
-
-  document.getElementById("progressText")
-    .innerText =
-      percent +
-      "% complete (" +
-      completed +
-      "/" +
-      totalPeople +
-      ")";
-}
-
-/* 🎬 ROUND COMPLETE */
-function showRoundComplete(nextRound){
-
-  const overlay =
-    document.getElementById("roundOverlay");
-
-  overlay.style.display = "flex";
-
-  if(nextRound > MAX_ROUNDS){
-
-    overlay.innerText = "DRAW COMPLETE";
-
-    setTimeout(() => {
-
-      overlay.style.display = "none";
-
-      buildFinalTable();
-
-    }, 3000);
-
-    return;
-  }
-
-  overlay.innerText = "ROUND COMPLETE";
-
-  running = false;
-
-  setTimeout(() => {
-
-    overlay.style.display = "none";
-
-    round = nextRound;
-
-    document.getElementById("roundTitle")
-      .innerText = "Round " + round;
-
-    startDraw();
-
-  }, 2500);
-}
-
-/* 🔊 AUDIO */
-function initAudio(){
-
-  ctx = new (
-    window.AudioContext ||
-    window.webkitAudioContext
-  )();
-}
-
-function tone(freq, duration=250, volume=0.12){
-
-  const o = ctx.createOscillator();
-  const g = ctx.createGain();
-
-  o.type = "sine";
-
-  o.connect(g);
-  g.connect(ctx.destination);
-
-  o.frequency.value = freq;
-  g.gain.value = volume;
-
-  o.start();
-
-  setTimeout(() => o.stop(), duration);
-}
-
-function playDing(){
-
-  tone(660, 180, 0.10);
-}
-
-function playCheer(){
-
-  tone(520, 220, 0.12);
-
-  setTimeout(() => {
-    tone(780, 220, 0.12);
-  }, 120);
-
-  setTimeout(() => {
-    tone(1040, 300, 0.14);
-  }, 240);
-}
-
-function playAww(){
-
-  tone(420, 220, 0.12);
-
-  setTimeout(() => {
-    tone(260, 260, 0.10);
-  }, 140);
-}
-
-function drumroll(){
-
-  tone(110, 120);
-
-  setTimeout(() => {
-    tone(130,120);
-  },140);
-
-  setTimeout(() => {
-    tone(100,120);
-  },280);
-}
-
-/* 🏳️ FLAGS */
 const flags = {
-  "Argentina":"🇦🇷",
-  "Brazil":"🇧🇷",
-  "England":"🏴",
-  "France":"🇫🇷",
-  "Germany":"🇩🇪",
-  "Spain":"🇪🇸",
-  "Portugal":"🇵🇹",
-  "Netherlands":"🇳🇱",
-  "USA":"🇺🇸",
-  "Mexico":"🇲🇽",
-  "Canada":"🇨🇦",
-  "Belgium":"🇧🇪",
-  "Croatia":"🇭🇷",
-  "Switzerland":"🇨🇭",
-  "Denmark":"🇩🇰",
-  "Austria":"🇦🇹",
-  "Serbia":"🇷🇸",
-  "Ukraine":"🇺🇦",
-  "Turkey":"🇹🇷",
-  "Poland":"🇵🇱",
-  "Morocco":"🇲🇦",
-  "Senegal":"🇸🇳",
-  "Nigeria":"🇳🇬",
-  "Egypt":"🇪🇬",
-  "Ghana":"🇬🇭",
-  "Cameroon":"🇨🇲",
-  "Algeria":"🇩🇿",
-  "Ivory Coast":"🇨🇮",
-  "Japan":"🇯🇵",
-  "South Korea":"🇰🇷",
-  "Iran":"🇮🇷",
-  "Saudi Arabia":"🇸🇦",
-  "Qatar":"🇶🇦",
-  "Australia":"🇦🇺",
-  "Uzbekistan":"🇺🇿",
-  "Iraq":"🇮🇶",
-  "Panama":"🇵🇦",
-  "Haiti":"🇭🇹",
-  "Curaçao":"🇨🇼",
-  "Cape Verde":"🇨🇻",
-  "DR Congo":"🇨🇩",
-  "Tunisia":"🇹🇳"
+  "Argentina":"ar",
+  "Brazil":"br",
+  "England":"gb-eng",
+  "France":"fr",
+  "Germany":"de",
+  "Spain":"es",
+  "Portugal":"pt",
+  "Netherlands":"nl",
+  "USA":"us",
+  "Mexico":"mx",
+  "Canada":"ca",
+  "Belgium":"be",
+  "Croatia":"hr",
+  "Switzerland":"ch",
+  "Denmark":"dk",
+  "Austria":"at",
+  "Serbia":"rs",
+  "Ukraine":"ua",
+  "Turkey":"tr",
+  "Poland":"pl",
+  "Morocco":"ma",
+  "Senegal":"sn",
+  "Nigeria":"ng",
+  "Egypt":"eg",
+  "Ghana":"gh",
+  "Cameroon":"cm",
+  "Algeria":"dz",
+  "Ivory Coast":"ci",
+  "Japan":"jp",
+  "South Korea":"kr",
+  "Iran":"ir",
+  "Saudi Arabia":"sa",
+  "Qatar":"qa",
+  "Australia":"au",
+  "Uzbekistan":"uz",
+  "Iraq":"iq",
+  "Panama":"pa",
+  "Haiti":"ht",
+  "Curaçao":"cw",
+  "Cape Verde":"cv",
+  "DR Congo":"cd",
+  "Tunisia":"tn"
 };
 
-/* ⚽ DRAW */
+function flag(team){
+  const code = flags[team];
+  return code
+    ? `https://flagcdn.com/w40/${code}.png`
+    : "";
+}
+
 function startDraw(){
 
-  if(running) return;
-
-  running = true;
-
-  document.getElementById("roundTitle")
-    .style.display = "block";
-
-  if(!ctx) initAudio();
-
   let people = [...data.people];
-
   people.sort(() => Math.random() - 0.5);
 
   if(remainingTeams.length === 0){
-
-    remainingTeams =
-      [...data.teams.map(t => t.name)];
+    remainingTeams = data.teams.map(t => t.name);
   }
 
-  totalPeople = people.length;
+  function step(i){
 
-  completed = 0;
-
-  updateProgress();
-
-  let i = 0;
-
-  function step(){
-
-    if(i >= people.length){
-
-      running = false;
-
-      showRoundComplete(round + 1);
-
-      return;
-    }
-
-    if(paused){
-
-      setTimeout(step, 500);
-
-      return;
-    }
+    if(i >= people.length) return;
 
     const person = people[i];
 
-    if(!finalResults[person.name]){
-
-      finalResults[person.name] = {
-        team1: "",
-        team2: ""
-      };
-    }
-
     const team = remainingTeams.splice(
-      Math.floor(
-        Math.random() * remainingTeams.length
-      ),
+      Math.floor(Math.random() * remainingTeams.length),
       1
     )[0];
 
-    if(round === 1){
+    if(!finalResults[person.name]){
+      finalResults[person.name] = { team1:"", team2:"" };
+    }
 
-      finalResults[person.name].team1 = team;
-
-    } else {
-
+    finalResults[person.name].team1 = finalResults[person.name].team1 || team;
+    if(finalResults[person.name].team1 !== team){
       finalResults[person.name].team2 = team;
     }
 
-    drumroll();
+    document.getElementById("result").innerHTML =
+      person.name + " → " +
+      `<img class="flag" src="${flag(team)}"> ` +
+      team;
 
-    document.getElementById("result")
-      .innerText = "Drawing...";
+    const div = document.createElement("div");
+    div.className = "card";
 
-    setTimeout(() => {
+    div.innerHTML =
+      person.name + " → " +
+      `<img class="flag" src="${flag(team)}"> ` +
+      team;
 
-      const flag =
-        flags[team] || "🏳️";
+    document.getElementById("feed").prepend(div);
 
-      document.getElementById("result")
-        .innerText =
-          person.name +
-          " → " +
-          flag +
-          " " +
-          team;
+    completed++;
 
-      const mainFlag =
-        document.getElementById("mainFlag");
+    document.getElementById("progressBar").style.width =
+      (completed / people.length * 100) + "%";
 
-      mainFlag.innerText = flag;
-
-      mainFlag.classList.add("show");
-
-      setTimeout(() => {
-
-        mainFlag.classList.remove("show");
-
-      }, 1200);
-
-      const div =
-        document.createElement("div");
-
-      div.className = "card";
-
-      div.innerText =
-        "Round " +
-        round +
-        " • " +
-        person.name +
-        " → " +
-        flag +
-        " " +
-        team;
-
-      document.getElementById("feed")
-        .prepend(div);
-
-      completed++;
-
-      updateProgress();
-
-      if([
-        "Argentina",
-        "Brazil",
-        "France",
-        "England",
-        "Spain",
-        "Germany",
-        "Portugal",
-        "Netherlands"
-      ].includes(team)){
-
-        playCheer();
-
-      }
-      else if([
-        "Haiti",
-        "Cape Verde",
-        "Curaçao",
-        "Tunisia",
-        "DR Congo",
-        "Australia",
-        "Iraq",
-        "Uzbekistan"
-      ].includes(team)){
-
-        playAww();
-
-      }
-      else {
-
-        playDing();
-
-      }
-
-    }, 1200);
-
-    i++;
-
-    setTimeout(step, 2200);
+    setTimeout(() => step(i+1), 1500);
   }
 
-  step();
+  step(0);
 }
 
-/* 🏆 FINAL TABLE */
-function buildFinalTable(){
-
-  const feed =
-    document.getElementById("feed");
-
-  feed.innerHTML = "";
-
-  const wrapper =
-    document.createElement("div");
-
-  wrapper.innerHTML = `
-
-    <h2 style="margin-bottom:20px;">
-      🏆 Final Sweepstake Results
-    </h2>
-
-    <button
-      onclick="goToTracker()"
-      style="margin-bottom:20px;"
-    >
-      Open Live Tracker
-    </button>
-
-    <table>
-
-      <thead>
-        <tr>
-          <th>Person</th>
-          <th>Team 1</th>
-          <th>Team 2</th>
-        </tr>
-      </thead>
-
-      <tbody id="finalTableBody"></tbody>
-
-    </table>
-  `;
-
-  feed.appendChild(wrapper);
-
-  const tbody =
-    document.getElementById("finalTableBody");
-
-  Object.keys(finalResults)
-    .sort()
-    .forEach(name => {
-
-      const row =
-        document.createElement("tr");
-
-      row.innerHTML = `
-        <td>${name}</td>
-        <td>${finalResults[name].team1}</td>
-        <td>${finalResults[name].team2}</td>
-      `;
-
-      tbody.appendChild(row);
-    });
-}
-
-/* 📊 TRACKER */
-function goToTracker(){
-
-  localStorage.setItem(
-    "sweepstakeResults",
-    JSON.stringify(finalResults)
-  );
-
-  window.location.href = "tracker.html";
-}
-
-/* 🧨 RESET */
 function resetDraw(){
-
-  if(!confirm("Reset everything?")) return;
-
-  document.getElementById("feed")
-    .innerHTML = "";
-
-  document.getElementById("result")
-    .innerText = "";
-
-  completed = 0;
-
-  round = 1;
-
-  running = false;
-
-  paused = false;
-
-  remainingTeams = [];
-
-  finalResults = {};
-
-  document.getElementById("roundTitle")
-    .innerText = "Round 1";
-
-  document.getElementById("roundTitle")
-    .style.display = "none";
-
-  document.getElementById("pauseBtn")
-    .innerText = "Pause";
-
-  document.getElementById("mainFlag")
-    .classList.remove("show");
-
-  updateProgress();
-
-  alert("Reset complete");
+  location.reload();
 }
 
-/* 📦 LOAD */
 fetch("teams.json")
   .then(r => r.json())
   .then(j => data = j);
+
 </script>
 
 </body>

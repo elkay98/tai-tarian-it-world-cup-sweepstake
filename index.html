@@ -216,12 +216,9 @@ function runLoop(){
   const div = document.createElement("div");
   div.className = "card";
 
+  // ✅ FIXED: main draw flags restored reliably
   div.innerHTML =
-    person.name +
-    " → " +
-    getFlagImg(team) +
-    " " +
-    team;
+    `${person.name} → ${getFlagImg(team)} ${team}`;
 
   document.getElementById("feed").prepend(div);
 
@@ -239,7 +236,7 @@ function togglePause(){
   if(!paused && running) runLoop();
 }
 
-/* ---------------- RANDOMISE (FIXED + RENDERED) ---------------- */
+/* ---------------- RANDOMISE ---------------- */
 function randomiseDraw(){
 
   let p = [...data.people].sort(()=>Math.random()-0.5);
@@ -261,15 +258,7 @@ function randomiseDraw(){
     div.className = "card";
 
     div.innerHTML =
-      person.name +
-      " → " +
-      getFlagImg(team1) +
-      " " +
-      team1 +
-      " | " +
-      getFlagImg(team2) +
-      " " +
-      team2;
+      `${person.name} → ${getFlagImg(team1)} ${team1} | ${getFlagImg(team2)} ${team2}`;
 
     document.getElementById("feed").appendChild(div);
   });

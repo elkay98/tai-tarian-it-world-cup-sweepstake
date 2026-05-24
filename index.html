@@ -128,7 +128,7 @@ let paused = false;
 let running = false;
 
 const TOTAL = 48;
-const DRAW_SPEED = 2000; // ✅ 2 seconds per draw
+const DRAW_SPEED = 2000;
 
 /* ---------------- FLAGS ---------------- */
 const flags = {
@@ -230,7 +230,7 @@ function runLoop(){
   document.getElementById("progressBar").style.width =
     (Object.keys(results).length*2 / TOTAL * 100) + "%";
 
-  setTimeout(runLoop, DRAW_SPEED); // ✅ 2 seconds here
+  setTimeout(runLoop, DRAW_SPEED);
 }
 
 /* ---------------- PAUSE ---------------- */
@@ -239,7 +239,7 @@ function togglePause(){
   if(!paused && running) runLoop();
 }
 
-/* ---------------- RANDOMISE ---------------- */
+/* ---------------- RANDOMISE (FIXED + RENDERED) ---------------- */
 function randomiseDraw(){
 
   let p = [...data.people].sort(()=>Math.random()-0.5);
@@ -247,11 +247,31 @@ function randomiseDraw(){
 
   results = {};
 
+  document.getElementById("feed").innerHTML = "";
+  document.getElementById("roundLabel").innerText = "Randomising...";
+
   p.forEach(person=>{
-    results[person.name] = {
-      team1: t.splice(Math.random()*t.length|0,1)[0],
-      team2: t.splice(Math.random()*t.length|0,1)[0]
-    };
+
+    const team1 = t.splice(Math.random()*t.length|0,1)[0];
+    const team2 = t.splice(Math.random()*t.length|0,1)[0];
+
+    results[person.name] = { team1, team2 };
+
+    const div = document.createElement("div");
+    div.className = "card";
+
+    div.innerHTML =
+      person.name +
+      " → " +
+      getFlagImg(team1) +
+      " " +
+      team1 +
+      " | " +
+      getFlagImg(team2) +
+      " " +
+      team2;
+
+    document.getElementById("feed").appendChild(div);
   });
 
   document.getElementById("progressBar").style.width = "100%";

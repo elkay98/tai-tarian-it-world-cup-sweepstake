@@ -87,13 +87,6 @@
 const API_KEY = "PASTE_YOUR_KEY_HERE";
 
 /* -------------------------------- */
-/* TEST MODE (SAFE FOR DEBUGGING) */
-/* -------------------------------- */
-
-const TEST_MODE = false;   // 👈 set to true to test before tournament
-const TEST_TEAM = "Arsenal";
-
-/* -------------------------------- */
 /* FLAGS */
 /* -------------------------------- */
 
@@ -112,8 +105,12 @@ const flags = {
 };
 
 function getFlag(team){
+
   const code = flags[team];
-  return code ? `<img class="flag" src="https://flagcdn.com/w40/${code}.png">` : "";
+
+  if(!code) return "";
+
+  return `<img class="flag" src="https://flagcdn.com/w40/${code}.png">`;
 }
 
 /* -------------------------------- */
@@ -130,11 +127,12 @@ const results =
 let concededData = {};
 
 /* -------------------------------- */
-/* CACHE SETTINGS */
+/* CACHE CHECK */
 /* -------------------------------- */
 
 const CACHE_KEY = "worldCupGoalsCache";
 const CACHE_TIME_KEY = "worldCupGoalsCacheTime";
+
 const ONE_HOUR = 1000 * 60 * 60;
 
 /* -------------------------------- */
@@ -148,25 +146,7 @@ const apiNames = {
 };
 
 /* -------------------------------- */
-/* GET CONCEDED GOALS */
-/* -------------------------------- */
-
-function getConceded(team){
-
-  // ---------------------------
-  // TEST MODE OVERRIDE
-  // ---------------------------
-  if(TEST_MODE){
-    return concededData[TEST_TEAM] ?? "-";
-  }
-
-  const mapped = apiNames[team] || team;
-
-  return concededData[mapped] ?? "-";
-}
-
-/* -------------------------------- */
-/* LOAD DATA FROM API */
+/* LOAD DATA */
 /* -------------------------------- */
 
 async function loadGoalsData(){
@@ -193,6 +173,10 @@ async function loadGoalsData(){
 
   try{
 
+    /* -------------------------------- */
+    /* WORLD CUP STANDINGS */
+    /* -------------------------------- */
+
     const response = await fetch(
       "https://v3.football.api-sports.io/standings?league=1&season=2026",
       {
@@ -213,8 +197,15 @@ async function loadGoalsData(){
 
     });
 
-    localStorage.setItem(CACHE_KEY, JSON.stringify(concededData));
-    localStorage.setItem(CACHE_TIME_KEY, Date.now());
+    localStorage.setItem(
+      CACHE_KEY,
+      JSON.stringify(concededData)
+    );
+
+    localStorage.setItem(
+      CACHE_TIME_KEY,
+      Date.now()
+    );
 
     renderTable();
 
@@ -235,15 +226,31 @@ async function loadGoalsData(){
 }
 
 /* -------------------------------- */
-/* RENDER TABLE */
+/* GET CONCEDED */
+/* -------------------------------- */
+
+function getConceded(team){
+
+  const mapped = apiNames[team] || team;
+
+  return concededData[mapped] ?? "-";
+}
+
+/* -------------------------------- */
+/* RENDER */
 /* -------------------------------- */
 
 function renderTable(){
 
-  const body = document.getElementById("trackerBody");
+  const body =
+    document.getElementById("trackerBody");
+
   body.innerHTML = "";
 
-  Object.keys(results).sort().forEach(name => {
+  const names =
+    Object.keys(results).sort();
+
+  names.forEach(name => {
 
     const r = results[name];
 
@@ -257,14 +264,18 @@ function renderTable(){
         ${r.team1}
       </td>
 
-      <td>${getConceded(r.team1)}</td>
+      <td>
+        ${getConceded(r.team1)}
+      </td>
 
       <td>
         ${getFlag(r.team2)}
         ${r.team2}
       </td>
 
-      <td>${getConceded(r.team2)}</td>
+      <td>
+        ${getConceded(r.team2)}
+      </td>
     `;
 
     body.appendChild(tr);
@@ -273,7 +284,7 @@ function renderTable(){
 }
 
 /* -------------------------------- */
-/* INIT */
+/* START */
 /* -------------------------------- */
 
 loadGoalsData();

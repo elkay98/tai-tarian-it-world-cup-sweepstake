@@ -80,76 +80,109 @@
 
 <script>
 
-/* ---------------- CONFIG ---------------- */
+/* -------------------------------- */
+/* API SETTINGS */
+/* -------------------------------- */
 
 const API_KEY = "PASTE_YOUR_KEY_HERE";
 
-const CACHE_KEY = "wc_auto_stats_cache";
-const CACHE_TIME = "wc_auto_stats_time";
+/* -------------------------------- */
+/* TEST MODE (SAFE FOR DEBUGGING) */
+/* -------------------------------- */
 
-const ONE_HOUR = 1000 * 60 * 60;
+const TEST_MODE = false;   // 👈 set to true to test before tournament
+const TEST_TEAM = "Arsenal";
 
-/* ---------------- DATA ---------------- */
+/* -------------------------------- */
+/* FLAGS */
+/* -------------------------------- */
+
+const flags = {
+  "Argentina":"ar","Brazil":"br","England":"gb-eng","France":"fr",
+  "Germany":"de","Spain":"es","Portugal":"pt","Netherlands":"nl",
+  "USA":"us","Mexico":"mx","Canada":"ca","Belgium":"be",
+  "Croatia":"hr","Switzerland":"ch","Denmark":"dk","Austria":"at",
+  "Serbia":"rs","Ukraine":"ua","Turkey":"tr","Poland":"pl",
+  "Morocco":"ma","Senegal":"sn","Nigeria":"ng","Egypt":"eg",
+  "Ghana":"gh","Cameroon":"cm","Algeria":"dz","Ivory Coast":"ci",
+  "Japan":"jp","South Korea":"kr","Iran":"ir","Saudi Arabia":"sa",
+  "Qatar":"qa","Australia":"au","Uzbekistan":"uz","Iraq":"iq",
+  "Panama":"pa","Haiti":"ht","Curaçao":"cw","Cape Verde":"cv",
+  "DR Congo":"cd","Tunisia":"tn"
+};
+
+function getFlag(team){
+  const code = flags[team];
+  return code ? `<img class="flag" src="https://flagcdn.com/w40/${code}.png">` : "";
+}
+
+/* -------------------------------- */
+/* LOAD DRAW RESULTS */
+/* -------------------------------- */
 
 const results =
   JSON.parse(localStorage.getItem("sweepstakeResults") || "{}");
 
-/* ---------------- CACHE ---------------- */
+/* -------------------------------- */
+/* GOALS CACHE */
+/* -------------------------------- */
 
-let statsCache = {};
+let concededData = {};
 
-/* ---------------- GET TEAM ID ---------------- */
+/* -------------------------------- */
+/* CACHE SETTINGS */
+/* -------------------------------- */
 
-async function getTeamId(name){
+const CACHE_KEY = "worldCupGoalsCache";
+const CACHE_TIME_KEY = "worldCupGoalsCacheTime";
+const ONE_HOUR = 1000 * 60 * 60;
 
-  const res = await fetch(
-    `https://v3.football.api-sports.io/teams?search=${encodeURIComponent(name)}`,
-    { headers: { "x-apisports-key": API_KEY } }
-  );
+/* -------------------------------- */
+/* TEAM NAME MAPPING */
+/* -------------------------------- */
 
-  const data = await res.json();
+const apiNames = {
+  "USA":"United States",
+  "South Korea":"Korea Republic",
+  "DR Congo":"Congo DR"
+};
 
-  if(data.response.length === 0) return null;
+/* -------------------------------- */
+/* GET CONCEDED GOALS */
+/* -------------------------------- */
 
-  return data.response[0].team.id;
-}
+function getConceded(team){
 
-/* ---------------- GET GOALS CONCEDED ---------------- */
-
-async function getGoalsConceded(teamName){
-
-  const teamId = await getTeamId(teamName);
-
-  if(!teamId) return "-";
-
-  const res = await fetch(
-    `https://v3.football.api-sports.io/teams/statistics?team=${teamId}&league=1&season=2026`,
-    { headers: { "x-apisports-key": API_KEY } }
-  );
-
-  const data = await res.json();
-
-  try{
-    return data.response.goals.against.total;
-  } catch(e){
-    return "-";
+  // ---------------------------
+  // TEST MODE OVERRIDE
+  // ---------------------------
+  if(TEST_MODE){
+    return concededData[TEST_TEAM] ?? "-";
   }
+
+  const mapped = apiNames[team] || team;
+
+  return concededData[mapped] ?? "-";
 }
 
-/* ---------------- LOAD ALL STATS ---------------- */
+/* -------------------------------- */
+/* LOAD DATA FROM API */
+/* -------------------------------- */
 
-async function loadStats(){
+async function loadGoalsData(){
 
   const cached = localStorage.getItem(CACHE_KEY);
-  const cachedTime = localStorage.getItem(CACHE_TIME);
+  const cacheTime = localStorage.getItem(CACHE_TIME_KEY);
 
-  if(cached && cachedTime){
+  if(cached && cacheTime){
 
-    if(Date.now() - cachedTime < ONE_HOUR){
+    const age = Date.now() - Number(cacheTime);
 
-      statsCache = JSON.parse(cached);
+    if(age < ONE_HOUR){
 
-      render();
+      concededData = JSON.parse(cached);
+
+      renderTable();
 
       document.getElementById("updatedText").innerText =
         "Using cached data";
@@ -158,31 +191,54 @@ async function loadStats(){
     }
   }
 
-  const names = new Set();
+  try{
 
-  Object.values(results).forEach(r=>{
-    names.add(r.team1);
-    names.add(r.team2);
-  });
+    const response = await fetch(
+      "https://v3.football.api-sports.io/standings?league=1&season=2026",
+      {
+        headers:{
+          "x-apisports-key": API_KEY
+        }
+      }
+    );
 
-  for(let team of names){
+    const data = await response.json();
 
-    statsCache[team] = await getGoalsConceded(team);
+    const standings = data.response[0].league.standings.flat();
+
+    standings.forEach(team => {
+
+      concededData[team.team.name] =
+        team.all.goals.against;
+
+    });
+
+    localStorage.setItem(CACHE_KEY, JSON.stringify(concededData));
+    localStorage.setItem(CACHE_TIME_KEY, Date.now());
+
+    renderTable();
+
+    document.getElementById("updatedText").innerText =
+      "Live data updated";
 
   }
+  catch(err){
 
-  localStorage.setItem(CACHE_KEY, JSON.stringify(statsCache));
-  localStorage.setItem(CACHE_TIME, Date.now());
+    console.error(err);
 
-  render();
+    renderTable();
 
-  document.getElementById("updatedText").innerText =
-    "Live data updated from API";
+    document.getElementById("updatedText").innerText =
+      "Could not update live data";
+
+  }
 }
 
-/* ---------------- RENDER ---------------- */
+/* -------------------------------- */
+/* RENDER TABLE */
+/* -------------------------------- */
 
-function render(){
+function renderTable(){
 
   const body = document.getElementById("trackerBody");
   body.innerHTML = "";
@@ -196,11 +252,19 @@ function render(){
     tr.innerHTML = `
       <td>${name}</td>
 
-      <td>${r.team1}</td>
-      <td>${statsCache[r.team1] ?? "-"}</td>
+      <td>
+        ${getFlag(r.team1)}
+        ${r.team1}
+      </td>
 
-      <td>${r.team2}</td>
-      <td>${statsCache[r.team2] ?? "-"}</td>
+      <td>${getConceded(r.team1)}</td>
+
+      <td>
+        ${getFlag(r.team2)}
+        ${r.team2}
+      </td>
+
+      <td>${getConceded(r.team2)}</td>
     `;
 
     body.appendChild(tr);
@@ -208,9 +272,11 @@ function render(){
   });
 }
 
-/* ---------------- START ---------------- */
+/* -------------------------------- */
+/* INIT */
+/* -------------------------------- */
 
-loadStats();
+loadGoalsData();
 
 </script>
 

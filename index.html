@@ -108,7 +108,7 @@
 
 <body>
 
-<div id="overlay">ROUND 1 COMPLETE</div>
+<div id="overlay">ROUND COMPLETE</div>
 
 <div class="wrapper">
 
@@ -170,42 +170,85 @@ function getFlagImg(team){
     : "";
 }
 
-/* ---------------- RESTORE SAVED DRAW ---------------- */
+/* ---------------- LOAD ---------------- */
 
-function restoreSavedDraw(){
+fetch("teams.json")
+  .then(r=>r.json())
+  .then(j=>{
+    data = j;
 
-  const saved = localStorage.getItem("sweepstakeResults");
+    // ONLY restore AFTER data exists
+    if(localStorage.getItem("sweepstakeResults")){
+      restoreSavedDraw();
+    }
+  });
 
-  if(!saved) return;
+/* ---------------- DRAW LOGIC ---------------- */
 
-  results = JSON.parse(saved);
+function startDraw(){
 
-  document.getElementById("roundLabel").innerText = "DRAW COMPLETE";
+  if(!data) return alert("Teams not loaded yet");
 
-  document.getElementById("progressBar").style.width = "100%";
+  results = {};
+  totalDrawn = 0;
 
-  document.getElementById("progressText").innerHTML =
-    `48/48 teams<br>0 remaining<br>100% complete`;
+  localStorage.removeItem("sweepstakeResults");
 
-  document.getElementById("result").innerHTML = `
-    🎉 DRAW COMPLETE<br><br>
-    <button onclick="go()">Go to Tracker</button>
-  `;
+  const people = [...data.people];
+  const teams = [...data.teams];
 
-  showFinalResults();
+  shuffle(people);
+  shuffle(teams);
+
+  runDraw(people, teams);
 }
 
-/* ---------------- FINAL RESULTS ---------------- */
+/* ---------------- CORE DRAW ---------------- */
 
-function showFinalResults(){
+function runDraw(people, teams){
+
+  let index = 0;
+
+  const interval = setInterval(()=>{
+
+    if(index >= people.length || teams.length < 2){
+      clearInterval(interval);
+      finishDraw();
+      return;
+    }
+
+    const person = people[index];
+
+    const team1 = teams.pop();
+    const team2 = teams.pop();
+
+    results[person] = { team1, team2 };
+
+    totalDrawn++;
+
+    updateUI();
+
+    index++;
+
+  }, 2000); // keep your requested timing
+}
+
+/* ---------------- UI UPDATE ---------------- */
+
+function updateUI(){
+
+  const progress = (totalDrawn / 24) * 100;
+
+  document.getElementById("progressBar").style.width = progress + "%";
+
+  document.getElementById("progressText").innerHTML =
+    `${totalDrawn}/24 teams<br>${24-totalDrawn} remaining<br>${Math.round(progress)}% complete`;
 
   const feed = document.getElementById("feed");
 
   feed.innerHTML = "";
 
-  const sortedNames = Object.keys(results).sort();
-
-  sortedNames.forEach(name => {
+  Object.keys(results).forEach(name=>{
 
     const r = results[name];
 
@@ -215,15 +258,8 @@ function showFinalResults(){
     div.innerHTML = `
       <strong>${name}</strong><br><br>
 
-      Team 1:
-      ${getFlagImg(r.team1)}
-      ${r.team1}
-
-      <br><br>
-
-      Team 2:
-      ${getFlagImg(r.team2)}
-      ${r.team2}
+      Team 1: ${getFlagImg(r.team1)} ${r.team1}<br><br>
+      Team 2: ${getFlagImg(r.team2)} ${r.team2}
     `;
 
     feed.appendChild(div);
@@ -231,37 +267,63 @@ function showFinalResults(){
   });
 }
 
-/* ---------------- PLACEHOLDER BUTTONS ---------------- */
+/* ---------------- FINISH ---------------- */
 
-function startDraw(){
-  location.reload();
+function finishDraw(){
+
+  localStorage.setItem("sweepstakeResults", JSON.stringify(results));
+
+  document.getElementById("overlay").style.display = "flex";
+
+  setTimeout(()=>{
+
+    document.getElementById("overlay").style.display = "none";
+
+    document.getElementById("result").innerHTML =
+      `🎉 DRAW COMPLETE<br><br>
+       <button onclick="go()">Go to Tracker</button>`;
+
+  }, 2500);
 }
 
-function togglePause(){}
+/* ---------------- RESTORE ---------------- */
 
-function randomiseDraw(){}
+function restoreSavedDraw(){
+
+  results = JSON.parse(localStorage.getItem("sweepstakeResults"));
+
+  updateUI();
+
+  document.getElementById("result").innerHTML =
+    `🎉 DRAW COMPLETE<br><br>
+     <button onclick="go()">Go to Tracker</button>`;
+}
+
+/* ---------------- HELPERS ---------------- */
+
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*i);
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+}
 
 function go(){
-  window.location.href = "tracker.html";
+  window.location.href="tracker.html";
 }
 
-/* ---------------- RESET ---------------- */
+function togglePause(){
+  alert("Pause will be next upgrade (not broken, just not implemented yet)");
+}
+
+function randomiseDraw(){
+  startDraw();
+}
 
 function reset(){
-
   localStorage.removeItem("sweepstakeResults");
-
   location.reload();
 }
-
-/* ---------------- LOAD ---------------- */
-
-fetch("teams.json")
-  .then(r=>r.json())
-  .then(j=>{
-    data = j;
-    restoreSavedDraw();
-  });
 
 </script>
 

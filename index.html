@@ -155,7 +155,52 @@ let running = false;
 
 const DRAW_SPEED = 2500;
 
+/* ---------------- AUDIO ---------------- */
+
+let ctx;
+
+function initAudio(){
+  if(!ctx){
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+}
+
+function play(freq, duration = 200){
+
+  if(!ctx) return;
+
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  osc.frequency.value = freq;
+  gain.gain.value = 0.08;
+
+  osc.start();
+
+  setTimeout(()=>{
+    osc.stop();
+  }, duration);
+}
+
+function playDing(){
+  play(700);
+}
+
+function playCheer(){
+  play(950);
+  setTimeout(()=>play(1200), 120);
+}
+
+function playAww(){
+  play(280);
+  setTimeout(()=>play(180), 120);
+}
+
 /* ---------------- FLAGS ---------------- */
+
 const flags = {
   "Argentina":"ar","Brazil":"br","England":"gb-eng","France":"fr",
   "Germany":"de","Spain":"es","Portugal":"pt","Netherlands":"nl",
@@ -175,8 +220,23 @@ function getFlagImg(team){
   return code ? `<img class="flag" src="https://flagcdn.com/w40/${code}.png">` : "";
 }
 
+/* ---------------- TEAM TIERS ---------------- */
+
+const eliteTeams = [
+  "Brazil","Argentina","France","England",
+  "Spain","Portugal","Germany"
+];
+
+const lowTeams = [
+  "Haiti","Curaçao","Cape Verde",
+  "Iraq","Uzbekistan","Panama"
+];
+
 /* ---------------- START ---------------- */
+
 function startDraw(){
+
+  initAudio();
 
   people = [...data.people].sort(()=>Math.random()-0.5);
 
@@ -200,6 +260,7 @@ function startDraw(){
 }
 
 /* ---------------- LOOP ---------------- */
+
 function runLoop(allPeople, round1Teams, round2Teams){
 
   if(!running) return;
@@ -232,7 +293,7 @@ function runLoop(allPeople, round1Teams, round2Teams){
   }
 
   let person = allPeople[i];
-  let team = teams.splice(Math.random()*teams.length|0,1)[0];
+  let team = teams.splice(Math.floor(Math.random() * teams.length),1)[0];
 
   if(!results[person.name]){
     results[person.name] = {team1:"",team2:""};
@@ -242,6 +303,18 @@ function runLoop(allPeople, round1Teams, round2Teams){
     results[person.name].team1 = team;
   } else {
     results[person.name].team2 = team;
+  }
+
+  /* ✅ SOUND LOGIC RESTORED */
+
+  if(eliteTeams.includes(team)){
+    playCheer();
+  }
+  else if(lowTeams.includes(team)){
+    playAww();
+  }
+  else{
+    playDing();
   }
 
   document.getElementById("roundLabel").innerText =
@@ -264,6 +337,7 @@ function runLoop(allPeople, round1Teams, round2Teams){
 }
 
 /* ---------------- PROGRESS ---------------- */
+
 function updateProgress(done){
 
   const total = 48;
@@ -280,12 +354,13 @@ function updateProgress(done){
 }
 
 /* ---------------- PAUSE ---------------- */
+
 function togglePause(){
   paused = !paused;
-  if(!paused && running) startDraw();
 }
 
 /* ---------------- RANDOMISE ---------------- */
+
 function randomiseDraw(){
 
   let p = [...data.people].sort(()=>Math.random()-0.5);
@@ -296,8 +371,8 @@ function randomiseDraw(){
 
   p.forEach(person=>{
 
-    const team1 = t.splice(Math.random()*t.length|0,1)[0];
-    const team2 = t.splice(Math.random()*t.length|0,1)[0];
+    const team1 = t.splice(Math.floor(Math.random()*t.length),1)[0];
+    const team2 = t.splice(Math.floor(Math.random()*t.length),1)[0];
 
     results[person.name] = { team1, team2 };
 
@@ -310,26 +385,26 @@ function randomiseDraw(){
     document.getElementById("feed").appendChild(div);
   });
 
+  localStorage.setItem("sweepstakeResults", JSON.stringify(results));
+
   document.getElementById("progressBar").style.width = "100%";
   document.getElementById("progressText").innerHTML =
     `48/48 teams<br>0 remaining<br>100% complete`;
 
   document.getElementById("roundLabel").innerText = "DRAW COMPLETE";
 
-  save();
-
   document.getElementById("result").innerHTML = `
-    🎉 DRAW COMPLETE<br>
+    🎉 DRAW COMPLETE<br><br>
     <button onclick="go()">Go to Tracker</button>
   `;
 }
 
 /* ---------------- FINISH ---------------- */
+
 function finish(){
 
   running = false;
 
-  // ✅ SAVE FOR TRACKER
   localStorage.setItem("sweepstakeResults", JSON.stringify(results));
 
   document.getElementById("progressBar").style.width = "100%";
@@ -345,16 +420,18 @@ function finish(){
 }
 
 function go(){
-  window.location.href="tracker.html";
+  window.location.href = "tracker.html";
 }
 
 /* ---------------- RESET ---------------- */
+
 function reset(){
   localStorage.removeItem("sweepstakeResults");
   location.reload();
 }
 
 /* ---------------- LOAD ---------------- */
+
 fetch("teams.json")
   .then(r=>r.json())
   .then(j=>data=j);

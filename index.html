@@ -260,9 +260,7 @@ fetch("teams.json")
   .then(r=>r.json())
   .then(j=>{
     data = j;
-    if (localStorage.getItem("sweepstakeResults")) {
-  restoreSavedDraw();
-}
+    restoreSavedDraw();
   });
 
 </script>

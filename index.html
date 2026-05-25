@@ -144,62 +144,8 @@
 <script>
 
 let data;
-let people = [];
-let teams = [];
-
 let results = {};
-let i = 0;
-let round = 1;
-let paused = false;
-let running = false;
-
 let totalDrawn = 0;
-
-const DRAW_SPEED = 2500;
-
-/* ---------------- AUDIO ---------------- */
-
-let ctx;
-
-function initAudio(){
-  if(!ctx){
-    ctx = new (window.AudioContext || window.webkitAudioContext)();
-  }
-}
-
-function play(freq, duration = 200){
-
-  if(!ctx) return;
-
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-
-  osc.frequency.value = freq;
-  gain.gain.value = 0.08;
-
-  osc.start();
-
-  setTimeout(()=>{
-    osc.stop();
-  }, duration);
-}
-
-function playDing(){
-  play(700);
-}
-
-function playCheer(){
-  play(950);
-  setTimeout(()=>play(1200), 120);
-}
-
-function playAww(){
-  play(280);
-  setTimeout(()=>play(180), 120);
-}
 
 /* ---------------- FLAGS ---------------- */
 
@@ -219,182 +165,34 @@ const flags = {
 
 function getFlagImg(team){
   const code = flags[team];
-  return code ? `<img class="flag" src="https://flagcdn.com/w40/${code}.png">` : "";
+  return code
+    ? `<img class="flag" src="https://flagcdn.com/w40/${code}.png">`
+    : "";
 }
 
-/* ---------------- TEAM TIERS ---------------- */
+/* ---------------- RESTORE SAVED DRAW ---------------- */
 
-const eliteTeams = [
-  "Brazil","Argentina","France","England",
-  "Spain","Portugal","Germany"
-];
+function restoreSavedDraw(){
 
-const lowTeams = [
-  "Haiti","Curaçao","Cape Verde",
-  "Iraq","Uzbekistan","Panama"
-];
+  const saved = localStorage.getItem("sweepstakeResults");
 
-/* ---------------- START ---------------- */
+  if(!saved) return;
 
-function startDraw(){
-
-  initAudio();
-
-  people = [...data.people].sort(()=>Math.random()-0.5);
-
-  const allTeams = [...data.teams.map(t=>t.name)];
-
-  const round1Teams = allTeams.slice(0, 24);
-  const round2Teams = allTeams.slice(24, 48);
-
-  results = {};
-  i = 0;
-  round = 1;
-  paused = false;
-  running = true;
-
-  totalDrawn = 0;
-
-  document.getElementById("feed").innerHTML = "";
-  document.getElementById("progressBar").style.width = "0%";
-
-  updateProgress();
-
-  runLoop(people, round1Teams, round2Teams);
-}
-
-/* ---------------- LOOP ---------------- */
-
-function runLoop(allPeople, round1Teams, round2Teams){
-
-  if(!running) return;
-
-  if(paused){
-    setTimeout(()=>runLoop(allPeople, round1Teams, round2Teams), 300);
-    return;
-  }
-
-  let teams = round === 1 ? round1Teams : round2Teams;
-
-  if(i >= allPeople.length){
-
-    if(round === 1){
-      round = 2;
-      i = 0;
-
-      document.getElementById("overlay").style.display = "flex";
-
-      setTimeout(()=>{
-        document.getElementById("overlay").style.display = "none";
-        runLoop(allPeople, round1Teams, round2Teams);
-      }, 3000);
-
-      return;
-    }
-
-    finish();
-    return;
-  }
-
-  let person = allPeople[i];
-  let team = teams.splice(Math.floor(Math.random() * teams.length),1)[0];
-
-  if(!results[person.name]){
-    results[person.name] = {team1:"",team2:""};
-  }
-
-  if(round === 1){
-    results[person.name].team1 = team;
-  } else {
-    results[person.name].team2 = team;
-  }
-
-  /* ---------------- SOUNDS ---------------- */
-
-  if(eliteTeams.includes(team)){
-    playCheer();
-  }
-  else if(lowTeams.includes(team)){
-    playAww();
-  }
-  else{
-    playDing();
-  }
-
-  document.getElementById("roundLabel").innerText =
-    round === 1 ? "ROUND 1" : "ROUND 2";
-
-  const div = document.createElement("div");
-  div.className = "card";
-
-  div.innerHTML =
-    (round === 1 ? "Team 1: " : "Team 2: ") +
-    `${person.name} → ${getFlagImg(team)} ${team}`;
-
-  document.getElementById("feed").prepend(div);
-
-  i++;
-
-  totalDrawn++;
-
-  updateProgress();
-
-  setTimeout(()=>runLoop(allPeople, round1Teams, round2Teams), DRAW_SPEED);
-}
-
-/* ---------------- PROGRESS ---------------- */
-
-function updateProgress(){
-
-  const total = 48;
-  const remaining = total - totalDrawn;
-  const percent = Math.round((totalDrawn / total) * 100);
-
-  document.getElementById("progressText").innerHTML =
-    `${totalDrawn}/48 teams<br>${remaining} remaining<br>${percent}% complete`;
-
-  document.getElementById("progressBar").style.width = percent + "%";
-}
-
-/* ---------------- PAUSE ---------------- */
-
-function togglePause(){
-  paused = !paused;
-}
-
-/* ---------------- RANDOMISE ---------------- */
-
-function randomiseDraw(){
-
-  let p = [...data.people].sort(()=>Math.random()-0.5);
-  let t = [...data.teams.map(x=>x.name)];
-
-  results = {};
-  document.getElementById("feed").innerHTML = "";
-
-  p.forEach(person=>{
-
-    const team1 = t.splice(Math.floor(Math.random()*t.length),1)[0];
-    const team2 = t.splice(Math.floor(Math.random()*t.length),1)[0];
-
-    results[person.name] = { team1, team2 };
-
-  });
-
-  totalDrawn = 48;
-
-  localStorage.setItem("sweepstakeResults", JSON.stringify(results));
-
-  updateProgress();
-
-  showFinalResults();
+  results = JSON.parse(saved);
 
   document.getElementById("roundLabel").innerText = "DRAW COMPLETE";
+
+  document.getElementById("progressBar").style.width = "100%";
+
+  document.getElementById("progressText").innerHTML =
+    `48/48 teams<br>0 remaining<br>100% complete`;
 
   document.getElementById("result").innerHTML = `
     🎉 DRAW COMPLETE<br><br>
     <button onclick="go()">Go to Tracker</button>
   `;
+
+  showFinalResults();
 }
 
 /* ---------------- FINAL RESULTS ---------------- */
@@ -433,28 +231,15 @@ function showFinalResults(){
   });
 }
 
-/* ---------------- FINISH ---------------- */
+/* ---------------- PLACEHOLDER BUTTONS ---------------- */
 
-function finish(){
-
-  running = false;
-
-  localStorage.setItem("sweepstakeResults", JSON.stringify(results));
-
-  totalDrawn = 48;
-
-  updateProgress();
-
-  /* ✅ NEW FINAL SORTED VIEW */
-  showFinalResults();
-
-  document.getElementById("roundLabel").innerText = "DRAW COMPLETE";
-
-  document.getElementById("result").innerHTML = `
-    🎉 DRAW COMPLETE<br><br>
-    <button onclick="go()">Go to Tracker</button>
-  `;
+function startDraw(){
+  location.reload();
 }
+
+function togglePause(){}
+
+function randomiseDraw(){}
 
 function go(){
   window.location.href = "tracker.html";
@@ -463,7 +248,9 @@ function go(){
 /* ---------------- RESET ---------------- */
 
 function reset(){
+
   localStorage.removeItem("sweepstakeResults");
+
   location.reload();
 }
 
@@ -471,7 +258,10 @@ function reset(){
 
 fetch("teams.json")
   .then(r=>r.json())
-  .then(j=>data=j);
+  .then(j=>{
+    data = j;
+    restoreSavedDraw();
+  });
 
 </script>
 

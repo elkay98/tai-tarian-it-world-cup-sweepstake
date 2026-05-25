@@ -153,7 +153,6 @@ let round = 1;
 let paused = false;
 let running = false;
 
-/* ✅ NEW: TRACK TRUE TOTAL PROGRESS */
 let totalDrawn = 0;
 
 const DRAW_SPEED = 2500;
@@ -254,7 +253,6 @@ function startDraw(){
   paused = false;
   running = true;
 
-  /* ✅ RESET TRUE TOTAL */
   totalDrawn = 0;
 
   document.getElementById("feed").innerHTML = "";
@@ -337,7 +335,6 @@ function runLoop(allPeople, round1Teams, round2Teams){
 
   i++;
 
-  /* ✅ TRUE GLOBAL COUNT */
   totalDrawn++;
 
   updateProgress();
@@ -382,13 +379,6 @@ function randomiseDraw(){
 
     results[person.name] = { team1, team2 };
 
-    const div = document.createElement("div");
-    div.className = "card";
-
-    div.innerHTML =
-      `${person.name} → ${getFlagImg(team1)} ${team1} | ${getFlagImg(team2)} ${team2}`;
-
-    document.getElementById("feed").appendChild(div);
   });
 
   totalDrawn = 48;
@@ -397,12 +387,50 @@ function randomiseDraw(){
 
   updateProgress();
 
+  showFinalResults();
+
   document.getElementById("roundLabel").innerText = "DRAW COMPLETE";
 
   document.getElementById("result").innerHTML = `
     🎉 DRAW COMPLETE<br><br>
     <button onclick="go()">Go to Tracker</button>
   `;
+}
+
+/* ---------------- FINAL RESULTS ---------------- */
+
+function showFinalResults(){
+
+  const feed = document.getElementById("feed");
+
+  feed.innerHTML = "";
+
+  const sortedNames = Object.keys(results).sort();
+
+  sortedNames.forEach(name => {
+
+    const r = results[name];
+
+    const div = document.createElement("div");
+    div.className = "card";
+
+    div.innerHTML = `
+      <strong>${name}</strong><br><br>
+
+      Team 1:
+      ${getFlagImg(r.team1)}
+      ${r.team1}
+
+      <br><br>
+
+      Team 2:
+      ${getFlagImg(r.team2)}
+      ${r.team2}
+    `;
+
+    feed.appendChild(div);
+
+  });
 }
 
 /* ---------------- FINISH ---------------- */
@@ -416,6 +444,9 @@ function finish(){
   totalDrawn = 48;
 
   updateProgress();
+
+  /* ✅ NEW FINAL SORTED VIEW */
+  showFinalResults();
 
   document.getElementById("roundLabel").innerText = "DRAW COMPLETE";
 

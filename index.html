@@ -108,7 +108,7 @@
 
 <body>
 
-<div id="overlay">ROUND COMPLETE</div>
+<div id="overlay">ROUND 1 COMPLETE</div>
 
 <div class="wrapper">
 
@@ -145,9 +145,7 @@
 
 let data;
 let results = {};
-let people = [];
-let teams = [];
-let index = 0;
+let totalDrawn = 0;
 
 /* ---------------- FLAGS ---------------- */
 
@@ -172,74 +170,42 @@ function getFlagImg(team){
     : "";
 }
 
-/* ---------------- LOAD ---------------- */
+/* ---------------- RESTORE SAVED DRAW ---------------- */
 
-fetch("teams.json")
-  .then(r=>r.json())
-  .then(j=>{
-    data = j;
+function restoreSavedDraw(){
 
-    if(localStorage.getItem("sweepstakeResults")){
-      restoreSavedDraw();
-    }
-  });
+  const saved = localStorage.getItem("sweepstakeResults");
 
-/* ---------------- START DRAW (FIXED) ---------------- */
+  if(!saved) return;
 
-function startDraw(){
+  results = JSON.parse(saved);
 
-  if(!data) return alert("Teams not loaded");
+  document.getElementById("roundLabel").innerText = "DRAW COMPLETE";
 
-  results = {};
-  index = 0;
+  document.getElementById("progressBar").style.width = "100%";
 
-  people = [...data.people];
-  teams = [...data.teams];
+  document.getElementById("progressText").innerHTML =
+    `48/48 teams<br>0 remaining<br>100% complete`;
 
-  shuffle(people);
-  shuffle(teams);
+  document.getElementById("result").innerHTML = `
+    🎉 DRAW COMPLETE<br><br>
+    <button onclick="go()">Go to Tracker</button>
+  `;
 
-  runDraw();
+  showFinalResults();
 }
 
-/* ---------------- DRAW ENGINE ---------------- */
+/* ---------------- FINAL RESULTS ---------------- */
 
-function runDraw(){
-
-  const interval = setInterval(()=>{
-
-    if(index >= people.length || teams.length < 2){
-      clearInterval(interval);
-      finishDraw();
-      return;
-    }
-
-    const person = people[index];
-
-    const team1 = teams.pop();
-    const team2 = teams.pop();
-
-    // IMPORTANT FIX: force strings
-    results[person] = {
-      team1: String(team1),
-      team2: String(team2)
-    };
-
-    index++;
-
-    render();
-
-  }, 2000);
-}
-
-/* ---------------- RENDER ---------------- */
-
-function render(){
+function showFinalResults(){
 
   const feed = document.getElementById("feed");
+
   feed.innerHTML = "";
 
-  Object.keys(results).forEach(name=>{
+  const sortedNames = Object.keys(results).sort();
+
+  sortedNames.forEach(name => {
 
     const r = results[name];
 
@@ -249,73 +215,53 @@ function render(){
     div.innerHTML = `
       <strong>${name}</strong><br><br>
 
-      Team 1: ${getFlagImg(r.team1)} ${r.team1}<br><br>
-      Team 2: ${getFlagImg(r.team2)} ${r.team2}
+      Team 1:
+      ${getFlagImg(r.team1)}
+      ${r.team1}
+
+      <br><br>
+
+      Team 2:
+      ${getFlagImg(r.team2)}
+      ${r.team2}
     `;
 
     feed.appendChild(div);
 
   });
-
 }
 
-/* ---------------- FINISH ---------------- */
+/* ---------------- PLACEHOLDER BUTTONS ---------------- */
 
-function finishDraw(){
-
-  localStorage.setItem("sweepstakeResults", JSON.stringify(results));
-
-  document.getElementById("overlay").style.display = "flex";
-
-  setTimeout(()=>{
-
-    document.getElementById("overlay").style.display = "none";
-
-    document.getElementById("result").innerHTML =
-      `🎉 DRAW COMPLETE<br><br>
-       <button onclick="go()">Go to Tracker</button>`;
-
-  }, 2000);
-}
-
-/* ---------------- RESTORE ---------------- */
-
-function restoreSavedDraw(){
-
-  results = JSON.parse(localStorage.getItem("sweepstakeResults") || "{}");
-
-  render();
-
-  document.getElementById("result").innerHTML =
-    `🎉 DRAW COMPLETE<br><br>
-     <button onclick="go()">Go to Tracker</button>`;
-}
-
-/* ---------------- HELPERS ---------------- */
-
-function shuffle(arr){
-  for(let i=arr.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*i);
-    [arr[i],arr[j]]=[arr[j],arr[i]];
-  }
-}
-
-function go(){
-  window.location.href="tracker.html";
-}
-
-function togglePause(){
-  alert("Pause not re-added yet (previous working version removed accidentally)");
-}
-
-function randomiseDraw(){
-  startDraw();
-}
-
-function reset(){
-  localStorage.removeItem("sweepstakeResults");
+function startDraw(){
   location.reload();
 }
+
+function togglePause(){}
+
+function randomiseDraw(){}
+
+function go(){
+  window.location.href = "tracker.html";
+}
+
+/* ---------------- RESET ---------------- */
+
+function reset(){
+
+  localStorage.removeItem("sweepstakeResults");
+
+  location.reload();
+}
+
+/* ---------------- LOAD ---------------- */
+
+fetch("teams.json")
+  .then(r=>r.json())
+  .then(j=>{
+    data = j;
+    restoreSavedDraw();
+  });
 
 </script>
 

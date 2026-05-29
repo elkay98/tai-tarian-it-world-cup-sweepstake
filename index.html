@@ -103,6 +103,27 @@
       font-weight:bold;
       z-index:9999;
     }
+
+    /* 🔥 GRID VIEW */
+    #gridView {
+      display:none;
+      flex-wrap:wrap;
+      gap:12px;
+    }
+
+    .gridCard {
+      width:220px;
+      background:rgba(255,255,255,0.06);
+      padding:12px;
+      border-radius:12px;
+    }
+
+    .teamRow {
+      display:flex;
+      align-items:center;
+      gap:6px;
+      margin:6px 0;
+    }
   </style>
 </head>
 
@@ -123,6 +144,7 @@
       <button onclick="togglePause()">Pause / Resume</button>
       <button onclick="randomiseDraw()">Randomise</button>
       <button onclick="reset()">Reset</button>
+      <button onclick="toggleView()">Switch View</button>
 
       <div id="progressText"></div>
 
@@ -137,6 +159,7 @@
 
   <div class="right">
     <div id="feed"></div>
+    <div id="gridView"></div>
   </div>
 
 </div>
@@ -153,7 +176,57 @@ let round = 1;
 let paused = false;
 let running = false;
 
+let viewMode = "feed";
+
 const DRAW_SPEED = 2500;
+
+/* ---------------- GRID VIEW ---------------- */
+
+function toggleView(){
+
+  const feed = document.getElementById("feed");
+  const grid = document.getElementById("gridView");
+
+  if(viewMode === "feed"){
+    viewMode = "grid";
+    feed.style.display = "none";
+    grid.style.display = "flex";
+    renderGrid();
+  } else {
+    viewMode = "feed";
+    feed.style.display = "block";
+    grid.style.display = "none";
+  }
+}
+
+function renderGrid(){
+
+  const grid = document.getElementById("gridView");
+  grid.innerHTML = "";
+
+  Object.keys(results).sort().forEach(name => {
+
+    const t1 = results[name].team1 || "N/A";
+    const t2 = results[name].team2 || "N/A";
+
+    const card = document.createElement("div");
+    card.className = "gridCard";
+
+    card.innerHTML = `
+      <h3 style="margin:0 0 10px 0;">${name}</h3>
+
+      <div class="teamRow">
+        ${getFlagImg(t1)} <span>${t1}</span>
+      </div>
+
+      <div class="teamRow">
+        ${getFlagImg(t2)} <span>${t2}</span>
+      </div>
+    `;
+
+    grid.appendChild(card);
+  });
+}
 
 /* ---------------- AUDIO ---------------- */
 
@@ -180,24 +253,12 @@ function play(freq, duration = 200){
 
   osc.start();
 
-  setTimeout(()=>{
-    osc.stop();
-  }, duration);
+  setTimeout(()=>osc.stop(), duration);
 }
 
-function playDing(){
-  play(700);
-}
-
-function playCheer(){
-  play(950);
-  setTimeout(()=>play(1200), 120);
-}
-
-function playAww(){
-  play(280);
-  setTimeout(()=>play(180), 120);
-}
+function playDing(){ play(700); }
+function playCheer(){ play(950); setTimeout(()=>play(1200),120); }
+function playAww(){ play(280); setTimeout(()=>play(180),120); }
 
 /* ---------------- FLAGS ---------------- */
 
@@ -220,18 +281,6 @@ function getFlagImg(team){
   return code ? `<img class="flag" src="https://flagcdn.com/w40/${code}.png">` : "";
 }
 
-/* ---------------- TEAM TIERS ---------------- */
-
-const eliteTeams = [
-  "Brazil","Argentina","France","England",
-  "Spain","Portugal","Germany"
-];
-
-const lowTeams = [
-  "Haiti","Curaçao","Cape Verde",
-  "Iraq","Uzbekistan","Panama"
-];
-
 /* ---------------- START ---------------- */
 
 function startDraw(){
@@ -252,15 +301,15 @@ function startDraw(){
   running = true;
 
   document.getElementById("feed").innerHTML = "";
-  document.getElementById("progressBar").style.width = "0%";
+  document.getElementById("gridView").innerHTML = "";
 
   updateProgress(0);
 
   const round2People = [...people]
-  .sort(() => Math.random() - 0.5)
-  .slice(0, 22);
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 22);
 
-runLoop(people, round1Teams, round2Teams, round2People);
+  runLoop(people, round1Teams, round2Teams, round2People);
 }
 
 /* ---------------- LOOP ---------------- */
@@ -270,9 +319,9 @@ function runLoop(allPeople, round1Teams, round2Teams, round2People){
   if(!running) return;
 
   if(paused){
-  setTimeout(()=>runLoop(allPeople, round1Teams, round2Teams, round2People), 300);
-  return;
-}
+    setTimeout(()=>runLoop(allPeople, round1Teams, round2Teams, round2People), 300);
+    return;
+  }
 
   let teams = round === 1 ? round1Teams : round2Teams;
   let currentPeople = round === 1 ? allPeople : round2People;
@@ -285,11 +334,11 @@ function runLoop(allPeople, round1Teams, round2Teams, round2People){
 
       document.getElementById("overlay").style.display = "flex";
 
-    setTimeout(()=>{
-      document.getElementById("overlay").style.display = "none";
-      runLoop(allPeople, round1Teams, round2Teams, round2People);
-    }, 3000);
-  
+      setTimeout(()=>{
+        document.getElementById("overlay").style.display = "none";
+        runLoop(allPeople, round1Teams, round2Teams, round2People);
+      }, 3000);
+
       return;
     }
 
@@ -310,32 +359,14 @@ function runLoop(allPeople, round1Teams, round2Teams, round2People){
     results[person.name].team2 = team;
   }
 
-  /* ✅ SOUND LOGIC RESTORED */
-
-  if(eliteTeams.includes(team)){
-    playCheer();
-  }
-  else if(lowTeams.includes(team)){
-    playAww();
-  }
-  else{
-    playDing();
-  }
-
-  document.getElementById("roundLabel").innerText =
-    round === 1 ? "ROUND 1" : "ROUND 2";
-
-  const div = document.createElement("div");
-  div.className = "card";
-
-  div.innerHTML =
-    (round === 1 ? "Team 1: " : "Team 2: ") +
-    `${person.name} → ${getFlagImg(team)} ${team}`;
-
-  document.getElementById("feed").prepend(div);
+  document.getElementById("feed").prepend(
+    Object.assign(document.createElement("div"), {
+      className:"card",
+      innerHTML:`${person.name} → ${getFlagImg(team)} ${team}`
+    })
+  );
 
   i++;
-
   updateProgress(i);
 
   setTimeout(()=>runLoop(allPeople, round1Teams, round2Teams, round2People), DRAW_SPEED);
@@ -350,90 +381,48 @@ function updateProgress(done){
   const displayStart = round === 1 ? 0 : 26;
   const displayDone = displayStart + done;
 
-  const remaining = total - displayDone;
   const percent = Math.round((displayDone / total) * 100);
 
   document.getElementById("progressText").innerHTML =
-    `${displayDone}/48 teams<br>${remaining} remaining<br>${percent}% complete`;
+    `${displayDone}/48`;
 
   document.getElementById("progressBar").style.width = percent + "%";
 }
 
-/* ---------------- PAUSE ---------------- */
+/* ---------------- OTHER FUNCTIONS ---------------- */
 
-function togglePause(){
-  paused = !paused;
+function togglePause(){ paused = !paused; }
+
+function finish(){
+  running = false;
+  localStorage.setItem("sweepstakeResults", JSON.stringify(results));
+  document.getElementById("roundLabel").innerText = "DRAW COMPLETE";
 }
 
-/* ---------------- RANDOMISE ---------------- */
-
 function randomiseDraw(){
-
   let p = [...data.people].sort(()=>Math.random()-0.5);
   let t = [...data.teams.map(x=>x.name)];
 
   results = {};
-  document.getElementById("feed").innerHTML = "";
 
   p.forEach(person=>{
-
     const team1 = t.splice(Math.floor(Math.random()*t.length),1)[0];
     const team2 = t.splice(Math.floor(Math.random()*t.length),1)[0];
-
     results[person.name] = { team1, team2 };
-
-    const div = document.createElement("div");
-    div.className = "card";
-
-    div.innerHTML =
-      `${person.name} → ${getFlagImg(team1)} ${team1} | ${getFlagImg(team2)} ${team2}`;
-
-    document.getElementById("feed").appendChild(div);
   });
 
   localStorage.setItem("sweepstakeResults", JSON.stringify(results));
-
-  document.getElementById("progressBar").style.width = "100%";
-  document.getElementById("progressText").innerHTML =
-    `48/48 teams<br>0 remaining<br>100% complete`;
-
   document.getElementById("roundLabel").innerText = "DRAW COMPLETE";
-
-  document.getElementById("result").innerHTML = `
-    🎉 DRAW COMPLETE<br><br>
-    <button onclick="go()">Go to Tracker</button>
-  `;
+  renderGrid();
 }
-
-/* ---------------- FINISH ---------------- */
-
-function finish(){
-
-  running = false;
-
-  localStorage.setItem("sweepstakeResults", JSON.stringify(results));
-
-  document.getElementById("progressBar").style.width = "100%";
-  document.getElementById("progressText").innerHTML =
-    `48/48 teams<br>0 remaining<br>100% complete`;
-
-  document.getElementById("roundLabel").innerText = "DRAW COMPLETE";
-
-  document.getElementById("result").innerHTML = `
-    🎉 DRAW COMPLETE<br><br>
-    <button onclick="go()">Go to Tracker</button>
-  `;
-}
-
-function go(){
-  window.location.href = "tracker.html";
-}
-
-/* ---------------- RESET ---------------- */
 
 function reset(){
   localStorage.removeItem("sweepstakeResults");
   location.reload();
+}
+
+function go(){
+  window.location.href = "tracker.html";
 }
 
 /* ---------------- LOAD ---------------- */

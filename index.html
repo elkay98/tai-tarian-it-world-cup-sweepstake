@@ -104,7 +104,7 @@
       z-index:9999;
     }
 
-    /* 🔥 GRID VIEW */
+    /* GRID VIEW */
     #gridView {
       display:none;
       flex-wrap:wrap;
@@ -252,7 +252,6 @@ function play(freq, duration = 200){
   gain.gain.value = 0.08;
 
   osc.start();
-
   setTimeout(()=>osc.stop(), duration);
 }
 
@@ -353,18 +352,33 @@ function runLoop(allPeople, round1Teams, round2Teams, round2People){
     results[person.name] = {team1:"",team2:""};
   }
 
+  /* TEAM ASSIGN */
   if(round === 1){
     results[person.name].team1 = team;
   } else {
     results[person.name].team2 = team;
   }
 
-  document.getElementById("feed").prepend(
-    Object.assign(document.createElement("div"), {
-      className:"card",
-      innerHTML:`${person.name} → ${getFlagImg(team)} ${team}`
-    })
-  );
+  /* 🔊 SOUND RESTORED */
+  if(eliteTeams.includes(team)){
+    playCheer();
+  }
+  else if(lowTeams.includes(team)){
+    playAww();
+  }
+  else{
+    playDing();
+  }
+
+  /* FEED WITH LABELS RESTORED */
+  const div = document.createElement("div");
+  div.className = "card";
+
+  div.innerHTML =
+    (round === 1 ? "Team 1: " : "Team 2: ") +
+    `${person.name} → ${getFlagImg(team)} ${team}`;
+
+  document.getElementById("feed").prepend(div);
 
   i++;
   updateProgress(i);
@@ -389,7 +403,7 @@ function updateProgress(done){
   document.getElementById("progressBar").style.width = percent + "%";
 }
 
-/* ---------------- OTHER FUNCTIONS ---------------- */
+/* ---------------- OTHER ---------------- */
 
 function togglePause(){ paused = !paused; }
 

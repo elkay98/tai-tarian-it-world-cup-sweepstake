@@ -119,10 +119,13 @@
 
       <div id="roundLabel">Ready</div>
 
+      <div id="adminControls" style="display:none;">
       <button onclick="startDraw()">Start Draw</button>
-      <button onclick="togglePause()">Pause / Resume</button>
       <button onclick="randomiseDraw()">Randomise</button>
       <button onclick="reset()">Reset</button>
+     </div>
+
+     <button onclick="adminLogin()">Admin Access</button>
 
       <div id="progressText"></div>
 
@@ -143,6 +146,8 @@
 
 <script>
 
+let isAdmin = sessionStorage.getItem("admin") === "true";
+  
 let data;
 let people = [];
 let teams = [];
@@ -235,7 +240,9 @@ const lowTeams = [
 /* ---------------- START ---------------- */
 
 function startDraw(){
-
+  
+  if(!isAdmin) return alert("Admin only");
+  
   initAudio();
 
   people = [...data.people].sort(()=>Math.random()-0.5);
@@ -369,6 +376,8 @@ function togglePause(){
 
 function randomiseDraw(){
 
+  if(!isAdmin) return alert("Admin only");
+
   let p = [...data.people].sort(()=>Math.random()-0.5);
   let t = [...data.teams.map(x=>x.name)];
 
@@ -432,6 +441,9 @@ function go(){
 /* ---------------- RESET ---------------- */
 
 function reset(){
+
+  if(!isAdmin) return alert("Admin only");
+  
   localStorage.removeItem("sweepstakeResults");
   location.reload();
 }
@@ -441,6 +453,31 @@ function reset(){
 fetch("teams.json")
   .then(r=>r.json())
   .then(j=>data=j);
+
+  function adminLogin(){
+
+  const pass = prompt("Enter admin password:");
+
+  if(pass === "TTWCSweep2026-!\"£"){
+
+    isAdmin = true;
+    sessionStorage.setItem("admin", "true");
+
+    document.getElementById("adminControls").style.display = "block";
+
+    alert("Admin unlocked");
+  } else {
+    alert("Incorrect password");
+  }
+}
+
+  function initAdminUI(){
+  if(isAdmin){
+    document.getElementById("adminControls").style.display = "block";
+  }
+}
+
+initAdminUI();
 
 </script>
 

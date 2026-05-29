@@ -191,36 +191,38 @@ Object.keys(results)
     const row = document.createElement("tr");
 
     row.innerHTML = `
-      <td>${name}</td>
-      
-      <td>
-  <div class="teamCell">
-    ${team2 === "N/A"
-      ? `<span>N/A</span>`
-      : `<img class="flag" src="${flag(team2)}"><span>${team2}</span>`
+  <td>${name}</td>
+
+  <!-- TEAM 1 -->
+  <td>
+    <div class="teamCell">
+      <img class="flag" src="${flag(team1)}">
+      <span>${team1}</span>
+    </div>
+  </td>
+
+  <td>
+    <input type="number" id="t1-${name}" value="${t1}" min="0">
+  </td>
+
+  <!-- TEAM 2 -->
+  <td>
+    <div class="teamCell">
+      ${team2 === "N/A"
+        ? `<span>N/A</span>`
+        : `<img class="flag" src="${flag(team2)}"><span>${team2}</span>`
+      }
+    </div>
+  </td>
+
+  <td>
+    ${
+      team2 === "N/A"
+        ? "—"
+        : `<input type="number" id="t2-${name}" value="${t2}" min="0">`
     }
-  </div>
-</td>
-
-      <td>
-        <input type="number" id="t1-${name}" value="${t1}" min="0">
-      </td>
-
-      <td>
-        <div class="teamCell">
-          <img class="flag" src="${flag(team2)}">
-          <span>${team2}</span>
-        </div>
-      </td>
-
-      <td>
-         ${
-    team2 === "N/A"
-      ? "—"
-      : `<input type="number" id="t2-${name}" value="${t2}" min="0">`
-  }
-      </td>
-    `;
+  </td>
+`;
 
     tbody.appendChild(row);
   });

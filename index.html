@@ -341,11 +341,12 @@ function runLoop(allPeople, round1Teams, round2Teams){
 function updateProgress(done){
 
   const total = 48;
-  const remaining = total - done;
-  const percent = Math.round((done / total) * 100);
 
   const displayStart = round === 1 ? 0 : 24;
   const displayDone = displayStart + done;
+
+  const remaining = total - displayDone;
+  const percent = Math.round((displayDone / total) * 100);
 
   document.getElementById("progressText").innerHTML =
     `${displayDone}/48 teams<br>${remaining} remaining<br>${percent}% complete`;

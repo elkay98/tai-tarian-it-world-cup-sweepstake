@@ -412,15 +412,19 @@ function randomiseDraw(){
     🎉 DRAW COMPLETE<br><br>
     <button onclick="go()">Go to Tracker</button>
   `;
+
+  localStorage.setItem("drawComplete", "true");
 }
 
 /* ---------------- FINISH ---------------- */
 
 function finish(){
 
-  running = false;
 
+  
+  running = false;
   localStorage.setItem("sweepstakeResults", JSON.stringify(results));
+  localStorage.setItem("drawComplete", "true");
 
   document.getElementById("progressBar").style.width = "100%";
   document.getElementById("progressText").innerHTML =
@@ -478,6 +482,39 @@ fetch("teams.json")
 }
 
 initAdminUI();
+
+const savedResults = localStorage.getItem("sweepstakeResults");
+const drawComplete = localStorage.getItem("drawComplete") === "true";
+
+if(drawComplete && savedResults){
+  const results = JSON.parse(savedResults);
+
+  document.getElementById("status").innerText = "DRAW COMPLETE";
+
+  renderSummary(results);
+}
+
+<h2 id="status">Ready for Draw</h2>
+<div id="summary"></div>
+
+  function renderSummary(results){
+
+  const div = document.getElementById("summary");
+  div.innerHTML = "";
+
+  Object.keys(results).sort().forEach(name => {
+
+    const t1 = results[name].team1;
+    const t2 = results[name].team2;
+
+    div.innerHTML += `
+      <div class="card">
+        <strong>${name}</strong><br>
+        ${t1} vs ${t2}
+      </div>
+    `;
+  });
+}
 
 </script>
 

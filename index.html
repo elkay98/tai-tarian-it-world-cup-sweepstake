@@ -119,9 +119,6 @@
 
       <div id="roundLabel">Ready</div>
 
-      <h2 id="status">Ready for Draw</h2>
-      <div id="summary"></div>
-
       <div id="adminControls" style="display:none;">
       <button onclick="startDraw()">Start Draw</button>
       <button onclick="randomiseDraw()">Randomise</button>
@@ -458,13 +455,10 @@ function reset(){
 /* ---------------- LOAD ---------------- */
 
 fetch("teams.json")
-  .then(r => r.json())
-  .then(j => data = j);
+  .then(r=>r.json())
+  .then(j=>data=j);
 
-
-/* ---------------- ADMIN ---------------- */
-
-function adminLogin(){
+  function adminLogin(){
 
   const pass = prompt("Enter admin password:");
 
@@ -481,7 +475,7 @@ function adminLogin(){
   }
 }
 
-function initAdminUI(){
+  function initAdminUI(){
   if(isAdmin){
     document.getElementById("adminControls").style.display = "block";
   }
@@ -489,17 +483,23 @@ function initAdminUI(){
 
 initAdminUI();
 
-
-/* ---------------- INDEX PAGE SUMMARY (SAFE VERSION) ---------------- */
-
 const savedResults = localStorage.getItem("sweepstakeResults");
 const drawComplete = localStorage.getItem("drawComplete") === "true";
 
-function renderSummary(results){
+if(drawComplete && savedResults){
+  const results = JSON.parse(savedResults);
+
+  document.getElementById("status").innerText = "DRAW COMPLETE";
+
+  renderSummary(results);
+}
+
+<h2 id="status">Ready for Draw</h2>
+<div id="summary"></div>
+
+  function renderSummary(results){
 
   const div = document.getElementById("summary");
-  if(!div) return;
-
   div.innerHTML = "";
 
   Object.keys(results).sort().forEach(name => {
@@ -516,12 +516,7 @@ function renderSummary(results){
   });
 }
 
-if(drawComplete && savedResults){
+</script>
 
-  const results = JSON.parse(savedResults);
-
-  const status = document.getElementById("status");
-  if(status) status.innerText = "DRAW COMPLETE";
-
-  renderSummary(results);
-}
+</body>
+</html>

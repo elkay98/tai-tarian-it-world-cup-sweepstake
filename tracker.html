@@ -186,19 +186,21 @@ Object.keys(results)
     const t2 = savedGoals[name]?.team2 || 0;
 
     const team1 = results[name].team1;
-    const team2 = results[name].team2;
+    const team2 = results[name].team2 || "N/A";
 
     const row = document.createElement("tr");
 
     row.innerHTML = `
       <td>${name}</td>
-
+      
       <td>
-        <div class="teamCell">
-          <img class="flag" src="${flag(team1)}">
-          <span>${team1}</span>
-        </div>
-      </td>
+  <div class="teamCell">
+    ${team2 === "N/A"
+      ? `<span>N/A</span>`
+      : `<img class="flag" src="${flag(team2)}"><span>${team2}</span>`
+    }
+  </div>
+</td>
 
       <td>
         <input type="number" id="t1-${name}" value="${t1}" min="0">
@@ -212,7 +214,11 @@ Object.keys(results)
       </td>
 
       <td>
-        <input type="number" id="t2-${name}" value="${t2}" min="0">
+         ${
+    team2 === "N/A"
+      ? "—"
+      : `<input type="number" id="t2-${name}" value="${t2}" min="0">`
+  }
       </td>
     `;
 

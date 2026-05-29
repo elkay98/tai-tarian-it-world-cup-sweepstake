@@ -242,8 +242,8 @@ function startDraw(){
 
   const allTeams = [...data.teams.map(t=>t.name)];
 
-  const round1Teams = allTeams.slice(0, 24);
-  const round2Teams = allTeams.slice(24, 48);
+  const round1Teams = allTeams.slice(0, 26);
+  const round2Teams = allTeams.slice(26, 48);
 
   results = {};
   i = 0;
@@ -256,12 +256,16 @@ function startDraw(){
 
   updateProgress(0);
 
-  runLoop(people, round1Teams, round2Teams);
+  const round2People = [...people]
+  .sort(() => Math.random() - 0.5)
+  .slice(0, 22);
+
+runLoop(people, round1Teams, round2Teams, round2People);
 }
 
 /* ---------------- LOOP ---------------- */
 
-function runLoop(allPeople, round1Teams, round2Teams){
+function runLoop(allPeople, round1Teams, round2Teams, round2People){
 
   if(!running) return;
 
@@ -271,8 +275,9 @@ function runLoop(allPeople, round1Teams, round2Teams){
   }
 
   let teams = round === 1 ? round1Teams : round2Teams;
+  let currentPeople = round === 1 ? allPeople : round2People;
 
-  if(i >= allPeople.length){
+  if(i >= currentPeople.length){
 
     if(round === 1){
       round = 2;
@@ -292,7 +297,7 @@ function runLoop(allPeople, round1Teams, round2Teams){
     return;
   }
 
-  let person = allPeople[i];
+  let person = currentPeople[i];
   let team = teams.splice(Math.floor(Math.random() * teams.length),1)[0];
 
   if(!results[person.name]){

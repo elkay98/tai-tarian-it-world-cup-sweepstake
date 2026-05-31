@@ -296,12 +296,14 @@ function runLoop(allPeople, round1Teams, round2Teams){
     results[person.name].team2 = team;
   }
 
-  document.getElementById("feed").prepend(
-    Object.assign(document.createElement("div"), {
-      className:"card",
-      innerHTML:`${person.name} → ${getFlagImg(team)} ${team}`
-    })
-  );
+  const label = (round === 1) ? "Team 1" : "Team 2";
+
+document.getElementById("feed").prepend(
+  Object.assign(document.createElement("div"), {
+    className:"card",
+    innerHTML:`${label}: ${person.name} → ${getFlagImg(team)} ${team}`
+  })
+);
 
   i++;
   updateProgress(i);

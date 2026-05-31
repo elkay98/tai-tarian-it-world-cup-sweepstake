@@ -119,6 +119,7 @@
 
       <div id="roundLabel">Ready</div>
 
+      <!-- FIX: admin controls are hidden properly -->
       <div id="adminControls" style="display:none;">
         <button onclick="startDraw()">Start Draw</button>
         <button onclick="randomiseDraw()">Randomise</button>
@@ -148,10 +149,8 @@
 
 let isAdmin = sessionStorage.getItem("admin") === "true";
 
-let data;
+let data = null;
 let people = [];
-let teams = [];
-
 let results = {};
 let i = 0;
 let round = 1;
@@ -160,9 +159,9 @@ let running = false;
 
 const DRAW_SPEED = 2500;
 
-/* ---------------- AUDIO ---------------- */
-
+/* ---------- AUDIO ---------- */
 let ctx;
+
 function initAudio(){
   if(!ctx){
     ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -185,8 +184,7 @@ function playDing(){ play(700); }
 function playCheer(){ play(950); setTimeout(()=>play(1200),120); }
 function playAww(){ play(280); setTimeout(()=>play(180),120); }
 
-/* ---------------- FLAGS ---------------- */
-
+/* ---------- FLAGS ---------- */
 const flags = {
   "Argentina":"ar","Brazil":"br","England":"gb-eng","France":"fr",
   "Germany":"de","Spain":"es","Portugal":"pt","Netherlands":"nl",
@@ -202,186 +200,18 @@ const flags = {
 };
 
 function getFlagImg(team){
-  const code = flags[team];
-  return code ? `<img class="flag" src="https://flagcdn.com/w40/${code}.png">` : "";
+  return flags[team]
+    ? `<img class="flag" src="https://flagcdn.com/w40/${flags[team]}.png">`
+    : "";
 }
 
-/* ---------------- FINAL RESULTS ---------------- */
-
-function showFinalResults(){
-
-  const feed = document.getElementById("feed");
-  feed.innerHTML = "";
-
-  Object.keys(results).sort().forEach(name => {
-
-    const team1 = results[name].team1 || "N/A";
-    const team2 = results[name].team2 || "N/A";
-
-    const div = document.createElement("div");
-    div.className = "card";
-
-    div.innerHTML =
-      `<strong>${name}</strong> → ` +
-      `${getFlagImg(team1)} ${team1} | ` +
-      (team2 === "N/A"
-        ? "N/A"
-        : `${getFlagImg(team2)} ${team2}`);
-
-    feed.appendChild(div);
-  });
-}
-
-/* ---------------- START ---------------- */
-
-function startDraw(){
-
-  if(!isAdmin) return alert("Admin only");
-
-  initAudio();
-
-  people = [...data.people].sort(()=>Math.random()-0.5);
-
-  const allTeams = [...data.teams.map(t=>t.name)];
-  const round1Teams = allTeams.slice(0, 26);
-  const round2Teams = allTeams.slice(26, 48);
-
-  results = {};
-  i = 0;
-  round = 1;
-  paused = false;
-  running = true;
-
-  document.getElementById("feed").innerHTML = "";
-  document.getElementById("progressBar").style.width = "0%";
-
-  updateProgress(0);
-
-  const round2People = [...people]
-    .sort(() => Math.random() - 0.5)
-    .slice(0, 22);
-
-  runLoop(people, round1Teams, round2Teams, round2People);
-}
-
-/* ---------------- LOOP (FIXED) ---------------- */
-
-function runLoop(allPeople, round1Teams, round2Teams, round2People){
-
-  if(!running) return;
-
-  if(paused){
-    setTimeout(()=>runLoop(allPeople, round1Teams, round2Teams, round2People), 300);
-    return;
-  }
-
-  let teams = round === 1 ? round1Teams : round2Teams;
-  let currentPeople = round === 1 ? allPeople : round2People;
-
-  if(i >= currentPeople.length){
-
-    if(round === 1){
-      round = 2;
-      i = 0;
-
-      document.getElementById("overlay").style.display = "flex";
-
-      setTimeout(()=>{
-        document.getElementById("overlay").style.display = "none";
-        runLoop(allPeople, round1Teams, round2Teams, round2People);
-      }, 3000);
-
-      return;
-    }
-
-    finish();
-    return;
-  }
-
-  let person = currentPeople[i];
-  let team = teams.splice(Math.floor(Math.random() * teams.length),1)[0];
-
-  if(!results[person.name]){
-    results[person.name] = {team1:"",team2:""};
-  }
-
-  if(round === 1){
-    results[person.name].team1 = team;
-  } else {
-    results[person.name].team2 = team;
-  }
-
-  if(eliteTeams.includes(team)) playCheer();
-  else if(lowTeams.includes(team)) playAww();
-  else playDing();
-
-  document.getElementById("roundLabel").innerText =
-    round === 1 ? "ROUND 1" : "ROUND 2";
-
-  const div = document.createElement("div");
-  div.className = "card";
-
-  div.innerHTML =
-    (round === 1 ? "Team 1: " : "Team 2: ") +
-    `${person.name} → ${getFlagImg(team)} ${team}`;
-
-  document.getElementById("feed").prepend(div);
-
-  i++;
-  updateProgress(i);
-
-  setTimeout(()=>runLoop(allPeople, round1Teams, round2Teams, round2People), DRAW_SPEED);
-}
-
-/* ---------------- PROGRESS ---------------- */
-
-function updateProgress(done){
-
-  const total = 48;
-  const displayStart = round === 1 ? 0 : 26;
-  const displayDone = displayStart + done;
-
-  const remaining = total - displayDone;
-  const percent = Math.round((displayDone / total) * 100);
-
-  document.getElementById("progressText").innerHTML =
-    `${displayDone}/48 teams<br>${remaining} remaining<br>${percent}% complete`;
-
-  document.getElementById("progressBar").style.width = percent + "%";
-}
-
-/* ---------------- FINISH ---------------- */
-
-function finish(){
-
-  running = false;
-
-  showFinalResults();
-
-  localStorage.setItem("sweepstakeResults", JSON.stringify(results));
-  localStorage.setItem("drawComplete", "true");
-
-  document.getElementById("progressBar").style.width = "100%";
-  document.getElementById("progressText").innerHTML =
-    `48/48 teams<br>0 remaining<br>100% complete`;
-
-  document.getElementById("roundLabel").innerText = "DRAW COMPLETE";
-
-  document.getElementById("result").innerHTML = `
-    🎉 DRAW COMPLETE<br><br>
-    <button onclick="go()">Go to Tracker</button>
-  `;
-}
-
-/* ---------------- ADMIN ---------------- */
-
+/* ---------- ADMIN ---------- */
 function adminLogin(){
-
   const pass = prompt("Enter admin password:");
 
   if(pass === "TTWCSweep2026-!\"£"){
     isAdmin = true;
-    sessionStorage.setItem("admin", "true");
+    sessionStorage.setItem("admin","true");
     document.getElementById("adminControls").style.display = "block";
     alert("Admin unlocked");
   } else {
@@ -395,15 +225,159 @@ function initAdminUI(){
   }
 }
 
-initAdminUI();
+/* ---------- START DRAW FIX ---------- */
+function startDraw(){
 
-/* ---------------- LOAD ---------------- */
+  if(!isAdmin) return alert("Admin only");
 
-fetch("teams.json").then(r=>r.json()).then(j=>data=j);
+  if(!data){
+    return alert("Teams data still loading. Try again in a second.");
+  }
+
+  initAudio();
+
+  people = [...data.people].sort(()=>Math.random()-0.5);
+
+  const allTeams = data.teams.map(t=>t.name);
+
+  const round1Teams = allTeams.slice(0,26);
+  const round2Teams = allTeams.slice(26,48);
+
+  results = {};
+  i = 0;
+  round = 1;
+  paused = false;
+  running = true;
+
+  document.getElementById("feed").innerHTML = "";
+  document.getElementById("progressBar").style.width = "0%";
+  updateProgress(0);
+
+  runLoop(people, round1Teams, round2Teams);
+}
+
+/* ---------- LOOP ---------- */
+function runLoop(allPeople, round1Teams, round2Teams){
+
+  if(!running) return;
+
+  let teams = round === 1 ? round1Teams : round2Teams;
+
+  if(i >= allPeople.length){
+
+    if(round === 1){
+      round = 2;
+      i = 0;
+
+      document.getElementById("overlay").style.display = "flex";
+
+      setTimeout(()=>{
+        document.getElementById("overlay").style.display = "none";
+        runLoop(allPeople, round1Teams, round2Teams);
+      }, 2000);
+
+      return;
+    }
+
+    finish();
+    return;
+  }
+
+  let person = allPeople[i];
+  let team = teams.splice(Math.floor(Math.random()*teams.length),1)[0];
+
+  if(!results[person.name]){
+    results[person.name] = {team1:"",team2:""};
+  }
+
+  if(round === 1){
+    results[person.name].team1 = team;
+  } else {
+    results[person.name].team2 = team;
+  }
+
+  document.getElementById("feed").prepend(
+    Object.assign(document.createElement("div"), {
+      className:"card",
+      innerHTML:`${person.name} → ${getFlagImg(team)} ${team}`
+    })
+  );
+
+  i++;
+  updateProgress(i);
+
+  setTimeout(()=>runLoop(allPeople, round1Teams, round2Teams), DRAW_SPEED);
+}
+
+/* ---------- PROGRESS FIX ---------- */
+function updateProgress(done){
+  const total = 48;
+  const percent = Math.round((done/total)*100);
+
+  document.getElementById("progressText").innerHTML =
+    `${done}/48 completed<br>${48-done} remaining<br>${percent}%`;
+
+  document.getElementById("progressBar").style.width = percent + "%";
+}
+
+/* ---------- FINISH ---------- */
+function finish(){
+
+  running = false;
+
+  localStorage.setItem("sweepstakeResults", JSON.stringify(results));
+  localStorage.setItem("drawComplete","true");
+
+  document.getElementById("roundLabel").innerText = "DRAW COMPLETE";
+
+  document.getElementById("result").innerHTML = `
+    🎉 DRAW COMPLETE<br><br>
+    <button onclick="go()">Go to Tracker</button>
+  `;
+}
 
 function go(){
   window.location.href = "tracker.html";
 }
+
+/* ---------- RANDOMISE ---------- */
+function randomiseDraw(){
+
+  if(!isAdmin) return alert("Admin only");
+
+  let p = [...data.people].sort(()=>Math.random()-0.5);
+  let t = data.teams.map(x=>x.name);
+
+  results = {};
+  document.getElementById("feed").innerHTML = "";
+
+  p.forEach(person=>{
+    const t1 = t.splice(Math.random()*t.length|0,1)[0];
+    const t2 = t.splice(Math.random()*t.length|0,1)[0];
+
+    results[person.name] = {team1:t1,team2:t2};
+
+    document.getElementById("feed").innerHTML +=
+      `<div class="card">${person.name} → ${getFlagImg(t1)} ${t1} | ${getFlagImg(t2)} ${t2}</div>`;
+  });
+
+  localStorage.setItem("sweepstakeResults", JSON.stringify(results));
+}
+
+/* ---------- RESET ---------- */
+function reset(){
+  if(!isAdmin) return alert("Admin only");
+  localStorage.clear();
+  location.reload();
+}
+
+/* ---------- LOAD ---------- */
+fetch("teams.json")
+  .then(r=>r.json())
+  .then(j=>data=j);
+
+/* ---------- INIT ---------- */
+initAdminUI();
 
 </script>
 

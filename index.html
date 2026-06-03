@@ -107,20 +107,23 @@
 
       #round1Summary {
   margin-top:15px;
-  text-align:left;
-  font-size:12px;
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
+  gap:8px;
 }
 
 .round1-item {
-  display:flex;
-  align-items:center;
-  gap:6px;
-  padding:2px 0;
+  background:rgba(255,255,255,0.05);
+  border-radius:8px;
+  padding:6px;
+  text-align:center;
+  font-size:11px;
 }
 
-.round1-item {
-  padding:4px 0;
-  border-bottom:1px solid rgba(255,255,255,0.08);
+.round1-item img {
+  display:block;
+  margin:4px auto 0;
+}
 }
     }
   </style>
@@ -237,7 +240,7 @@ function showRound1Summary(){
 
   const summary = document.getElementById("round1Summary");
 
-  summary.innerHTML = "<h3>Round 1 Results</h3>";
+  summary.innerHTML = "";
 
   Object.keys(results)
     .sort()
@@ -245,10 +248,16 @@ function showRound1Summary(){
 
       const team1 = results[name].team1;
 
+      const parts = name.split(" ");
+
+      const firstName = parts[0];
+      const lastName = parts.slice(1).join(" ");
+
       summary.innerHTML += `
         <div class="round1-item">
+          <strong>${firstName}</strong><br>
+          ${lastName}<br>
           ${getFlagImg(team1)}
-          <strong>${name}</strong>
         </div>
       `;
     });

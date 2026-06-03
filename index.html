@@ -428,7 +428,16 @@ function randomiseDraw(){
 
 /* ---------- RESET ---------- */
 function reset(){
+
   if(!isAdmin) return alert("Admin only");
+
+  const pass = prompt("Enter admin password to confirm reset:");
+
+  if(pass !== 'TTWCSweep2026-!"£'){
+    alert("Reset cancelled");
+    return;
+  }
+
   localStorage.clear();
   location.reload();
 }

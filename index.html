@@ -127,7 +127,7 @@
         <button onclick="reset()">Reset</button>
       </div>
 
-      <button onclick="adminLogin()">Admin Access</button>
+      <button id="adminButton" onclick="adminLogin()">Admin Access</button>
 
       <div id="progressText"></div>
 
@@ -136,6 +136,8 @@
       </div>
       
       <div id="result"></div>
+
+      <div id="trackerLink"></div>
 
     </div>
   </div>
@@ -221,6 +223,7 @@ function adminLogin(){
     isAdmin = true;
     sessionStorage.setItem("admin","true");
     document.getElementById("adminControls").style.display = "block";
+    document.getElementById("adminButton").style.display = "none";
     alert("Admin unlocked");
   } else {
     alert("Incorrect password");
@@ -228,8 +231,13 @@ function adminLogin(){
 }
 
 function initAdminUI(){
+
   if(isAdmin){
+
     document.getElementById("adminControls").style.display = "block";
+
+    const btn = document.getElementById("adminButton");
+    if(btn) btn.style.display = "none";
   }
 }
 
@@ -354,6 +362,7 @@ function finish(){
 
   localStorage.setItem("sweepstakeResults", JSON.stringify(results));
   localStorage.setItem("drawComplete","true");
+  showTrackerButton();
 
   document.getElementById("roundLabel").innerText = "DRAW COMPLETE";
 
@@ -365,6 +374,15 @@ function finish(){
 
 function go(){
   window.location.href = "tracker.html";
+}
+
+  function showTrackerButton(){
+
+  document.getElementById("trackerLink").innerHTML = `
+    <button onclick="go()">
+      📊 Go to Live Tracker
+    </button>
+  `;
 }
 
 /* ---------- RANDOMISE ---------- */
@@ -389,6 +407,9 @@ function randomiseDraw(){
   });
 
   localStorage.setItem("sweepstakeResults", JSON.stringify(results));
+
+  localStorage.setItem("drawComplete","true");
+showTrackerButton();
 }
 
 /* ---------- RESET ---------- */
@@ -405,6 +426,9 @@ fetch("teams.json")
 
 /* ---------- INIT ---------- */
 initAdminUI();
+  if(localStorage.getItem("drawComplete") === "true"){
+  showTrackerButton();
+}
 
 </script>
 

@@ -362,7 +362,6 @@ function finish(){
 
   localStorage.setItem("sweepstakeResults", JSON.stringify(results));
   localStorage.setItem("drawComplete","true");
-  showTrackerButton();
 
   document.getElementById("roundLabel").innerText = "DRAW COMPLETE";
 
@@ -383,6 +382,18 @@ function go(){
       📊 Go to Live Tracker
     </button>
   `;
+}
+
+  function showTrackerButton(){
+
+  if(localStorage.getItem("drawComplete") === "true"){
+
+    document.getElementById("trackerLink").innerHTML = `
+      <button onclick="go()">
+        📊 Go to Live Tracker
+      </button>
+    `;
+  }
 }
 
 /* ---------- RANDOMISE ---------- */
@@ -409,7 +420,6 @@ function randomiseDraw(){
   localStorage.setItem("sweepstakeResults", JSON.stringify(results));
 
   localStorage.setItem("drawComplete","true");
-showTrackerButton();
 }
 
 /* ---------- RESET ---------- */
@@ -428,6 +438,8 @@ fetch("teams.json")
 initAdminUI();
   if(localStorage.getItem("drawComplete") === "true"){
   showTrackerButton();
+
+    showTrackerButton();
 }
 
 </script>

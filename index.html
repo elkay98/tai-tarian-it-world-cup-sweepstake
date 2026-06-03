@@ -104,27 +104,6 @@
       font-size:48px;
       font-weight:bold;
       z-index:9999;
-
-      #round1Summary {
-  margin-top:15px;
-  display:grid;
-  grid-template-columns:repeat(4, 1fr);
-  gap:8px;
-}
-
-.round1-item {
-  background:rgba(255,255,255,0.05);
-  border-radius:8px;
-  padding:6px;
-  text-align:center;
-  font-size:11px;
-}
-
-.round1-item img {
-  display:block;
-  margin:4px auto 0;
-}
-}
     }
   </style>
 </head>
@@ -155,8 +134,6 @@
       <div id="progressWrapper">
         <div id="progressBar"></div>
       </div>
-
-      <div id="round1Summary"></div>
       
       <div id="result"></div>
 
@@ -235,33 +212,6 @@ function getFlagImg(team){
     ? `<img class="flag" src="https://flagcdn.com/w40/${flags[team]}.png">`
     : "";
 }
-
-function showRound1Summary(){
-
-  const summary = document.getElementById("round1Summary");
-
-  summary.innerHTML = "";
-
-  Object.keys(results)
-    .sort()
-    .forEach(name => {
-
-      const team1 = results[name].team1;
-
-      const parts = name.split(" ");
-
-      const firstName = parts[0];
-      const lastName = parts.slice(1).join(" ");
-
-      summary.innerHTML += `
-        <div class="round1-item">
-          <strong>${firstName}</strong><br>
-          ${lastName}<br>
-          ${getFlagImg(team1)}
-        </div>
-      `;
-    });
-}
   
 /* ---------- ADMIN ---------- */
 function adminLogin(){
@@ -321,8 +271,6 @@ function runLoop(allPeople, round1Teams, round2Teams){
   if(i >= allPeople.length){
 
     if(round === 1){
-
-  showRound1Summary();
 
   round = 2;
   i = 0;

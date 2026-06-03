@@ -84,8 +84,8 @@
     }
 
     .flag {
-      width:28px;
-      height:20px;
+      width:22px;
+      height:16px;
       border-radius:3px;
       vertical-align:middle;
       margin:0 6px;
@@ -106,11 +106,16 @@
       z-index:9999;
 
       #round1Summary {
-  margin-top:20px;
-  max-height:450px;
-  overflow-y:auto;
+  margin-top:15px;
   text-align:left;
-  font-size:14px;
+  font-size:12px;
+}
+
+.round1-item {
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:2px 0;
 }
 
 .round1-item {
@@ -242,8 +247,8 @@ function showRound1Summary(){
 
       summary.innerHTML += `
         <div class="round1-item">
-          <strong>${name}</strong> →
-          ${getFlagImg(team1)} ${team1}
+          ${getFlagImg(team1)}
+          <strong>${name}</strong>
         </div>
       `;
     });

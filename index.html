@@ -288,6 +288,10 @@ function runLoop(allPeople, round1Teams, round2Teams){
   let person = allPeople[i];
   let team = teams.splice(Math.floor(Math.random()*teams.length),1)[0];
 
+  if(!team){
+  team = "N/A";
+}
+
   if(!results[person.name]){
     results[person.name] = {team1:"",team2:""};
   }

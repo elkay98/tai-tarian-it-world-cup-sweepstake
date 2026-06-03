@@ -104,6 +104,19 @@
       font-size:48px;
       font-weight:bold;
       z-index:9999;
+
+      #round1Summary {
+  margin-top:20px;
+  max-height:450px;
+  overflow-y:auto;
+  text-align:left;
+  font-size:14px;
+}
+
+.round1-item {
+  padding:4px 0;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+}
     }
   </style>
 </head>
@@ -135,6 +148,8 @@
         <div id="progressBar"></div>
       </div>
 
+      <div id="round1Summary"></div>
+      
       <div id="result"></div>
 
     </div>
@@ -213,6 +228,27 @@ function getFlagImg(team){
     : "";
 }
 
+function showRound1Summary(){
+
+  const summary = document.getElementById("round1Summary");
+
+  summary.innerHTML = "<h3>Round 1 Results</h3>";
+
+  Object.keys(results)
+    .sort()
+    .forEach(name => {
+
+      const team1 = results[name].team1;
+
+      summary.innerHTML += `
+        <div class="round1-item">
+          <strong>${name}</strong> →
+          ${getFlagImg(team1)} ${team1}
+        </div>
+      `;
+    });
+}
+  
 /* ---------- ADMIN ---------- */
 function adminLogin(){
   const pass = prompt("Enter admin password:");
@@ -271,10 +307,13 @@ function runLoop(allPeople, round1Teams, round2Teams){
   if(i >= allPeople.length){
 
     if(round === 1){
-      round = 2;
-      i = 0;
 
-      document.getElementById("overlay").style.display = "flex";
+  showRound1Summary();
+
+  round = 2;
+  i = 0;
+
+  document.getElementById("overlay").style.display = "flex";
 
       setTimeout(()=>{
         document.getElementById("overlay").style.display = "none";

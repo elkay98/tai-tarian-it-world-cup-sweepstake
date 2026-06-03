@@ -293,10 +293,10 @@ function runLoop(allPeople, round1Teams, round2Teams){
   }
 
   if(round === 1){
-    results[person.name].team1 = team;
-  } else {
-    results[person.name].team2 = team;
-  }
+  results[person.name].team1 = team;
+ } else {
+  results[person.name].team2 = team || "N/A";
+ }
 
   /* ---------- SOUND PER PICK ---------- */
   if(["Brazil","Argentina","France","England","Spain","Portugal","Germany"].includes(team)){

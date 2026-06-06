@@ -169,30 +169,22 @@ async function getGoalsConceded(teamName){
     return concededCache[teamName];
   }
 
+  // 1. Get team ID via Worker
   const response = await fetch(
-    `https://v3.football.api-sports.io/teams?search=${encodeURIComponent(teamName)}`,
-    {
-      headers: {
-        "x-apisports-key": API_KEY
-      }
-    }
+    `https://api-football.12heolh.workers.dev?endpoint=teams&search=${encodeURIComponent(teamName)}`
   );
 
   const teamData = await response.json();
 
-  if(!teamData.response.length){
+  if(!teamData.response || !teamData.response.length){
     return 0;
   }
 
   const teamId = teamData.response[0].team.id;
 
+  // 2. Get fixtures via Worker
   const fixturesResponse = await fetch(
-    `https://v3.football.api-sports.io/fixtures?team=${teamId}&season=${SEASON}`,
-    {
-      headers: {
-        "x-apisports-key": API_KEY
-      }
-    }
+    `https://api-football.12heolh.workers.dev?endpoint=fixtures&team=${teamId}&season=${SEASON}`
   );
 
   const fixturesData = await fixturesResponse.json();
@@ -207,6 +199,7 @@ async function getGoalsConceded(teamName){
     }
   });
 
+  // cache result
   concededCache[teamName] = conceded;
   return conceded;
 }
@@ -282,8 +275,3 @@ buildTable();
 function goBack(){
   window.location.href = "index.html";
 }
-
-</script>
-
-</body>
-</html>

@@ -15,11 +15,9 @@
 { "name": "Daniel Owen", "teams": [] },
 { "name": "Nick Tagg", "teams": [] },
 { "name": "Gana Kesavan", "teams": [] },
-{ "name": "Kath Dawes", "teams": [] },
 { "name": "Stephanie Webber", "teams": [] },
 { "name": "Rachel Morgan", "teams": [] },
 { "name": "Mike Mimnagh", "teams": [] },
-{ "name": "Nick Sloper", "teams": [] },
 { "name": "Matthew Jones", "teams": [] },
 { "name": "Robert Lucey", "teams": [] },
 { "name": "Holly Chatman", "teams": [] },
@@ -48,11 +46,9 @@
     { "name": "Ukraine", "tier": "mid" },
     { "name": "Turkey", "tier": "mid" },
     { "name": "Poland", "tier": "mid" },
-
     { "name": "USA", "tier": "mid" },
     { "name": "Mexico", "tier": "mid" },
     { "name": "Canada", "tier": "mid" },
-
     { "name": "Morocco", "tier": "mid" },
     { "name": "Senegal", "tier": "mid" },
     { "name": "Nigeria", "tier": "mid" },
@@ -62,7 +58,6 @@
     { "name": "Algeria", "tier": "mid" },
     { "name": "Ivory Coast", "tier": "mid" },
     { "name": "South Africa", "tier": "mid" },
-
     { "name": "Japan", "tier": "mid" },
     { "name": "South Korea", "tier": "mid" },
     { "name": "Iran", "tier": "mid" },
@@ -70,21 +65,20 @@
     { "name": "Qatar", "tier": "mid" },
     { "name": "Australia", "tier": "mid" },
     { "name": "Jordan", "tier": "mid" },
+    { "name": "Costa Rica", "tier": "mid" },
+    { "name": "Honduras", "tier": "mid" },
+    { "name": "Jamaica", "tier": "mid" },
+    { "name": "El Salvador", "tier": "mid" },
+    { "name": "New Zealand", "tier": "mid" },
+    
     { "name": "Uzbekistan", "tier": "low" },
     { "name": "Iraq", "tier": "low" },
-
     { "name": "Panama", "tier": "low" },
     { "name": "Haiti", "tier": "low" },
     { "name": "Curaçao", "tier": "low" },
     { "name": "Cape Verde", "tier": "low" },
     { "name": "DR Congo", "tier": "low" },
-    { "name": "Tunisia", "tier": "low" },
+    { "name": "Tunisia", "tier": "low" }
 
-    { "name": "Costa Rica", "tier": "mid" },
-    { "name": "Honduras", "tier": "mid" },
-    { "name": "Jamaica", "tier": "mid" },
-    { "name": "El Salvador", "tier": "mid" },
-
-    { "name": "New Zealand", "tier": "mid" }
   ]
 }

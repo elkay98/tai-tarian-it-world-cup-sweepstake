@@ -1,157 +1,23 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Live Sweepstake Tracker</title>
-
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #0f172a, #1e293b);
-      color: white;
-      padding: 40px;
-    }
-
-    h1 {
-      margin-bottom: 30px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: rgba(255,255,255,0.05);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    th {
-      background: rgba(255,255,255,0.1);
-      padding: 14px;
-      text-align: left;
-    }
-
-    td {
-      padding: 14px;
-      border-top: 1px solid rgba(255,255,255,0.08);
-      vertical-align: middle;
-    }
-
-    tr:hover {
-      background: rgba(255,255,255,0.03);
-    }
-
-    .teamCell {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .flag {
-      width: 26px;
-      height: 18px;
-      border-radius: 3px;
-      object-fit: cover;
-      box-shadow: 0 0 2px rgba(0,0,0,0.4);
-    }
-
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 25px;
-    }
-
-    button {
-      padding: 10px 16px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      background: #3b82f6;
-      color: white;
-    }
-  </style>
-</head>
-
-<body>
-
-<div class="topbar">
-  <h1>📊 Live World Cup Tracker</h1>
-  <button onclick="goBack()">Back To Draw</button>
-</div>
-
-<table>
-  <thead>
-    <tr>
-      <th>Person</th>
-      <th>Team 1</th>
-      <th>Goals Conceded</th>
-      <th>Team 2</th>
-      <th>Goals Conceded</th>
-    </tr>
-  </thead>
-
-  <tbody id="trackerBody"></tbody>
-</table>
-
-<script>
-
 const results = JSON.parse(localStorage.getItem("sweepstakeResults")) || {};
 
-const API_KEY = "801b4bdc2128ca227818ab361372734f";
+const API_BASE = "https://api-football.12heolh.workers.dev";
 const SEASON = 2026;
 
 /* 🌍 FLAG MAP */
 const flags = {
-  "Argentina":"ar",
-  "Brazil":"br",
-  "England":"gb-eng",
-  "France":"fr",
-  "Germany":"de",
-  "Spain":"es",
-  "Portugal":"pt",
-  "Netherlands":"nl",
-  "USA":"us",
-  "Mexico":"mx",
-  "Canada":"ca",
-  "Belgium":"be",
-  "Croatia":"hr",
-  "Switzerland":"ch",
-  "Denmark":"dk",
-  "Austria":"at",
-  "Serbia":"rs",
-  "Ukraine":"ua",
-  "Turkey":"tr",
-  "Poland":"pl",
-  "Morocco":"ma",
-  "Senegal":"sn",
-  "Nigeria":"ng",
-  "Egypt":"eg",
-  "Ghana":"gh",
-  "Cameroon":"cm",
-  "Algeria":"dz",
-  "Ivory Coast":"ci",
-  "Japan":"jp",
-  "South Korea":"kr",
-  "Iran":"ir",
-  "Saudi Arabia":"sa",
-  "Qatar":"qa",
-  "Australia":"au",
-  "Uzbekistan":"uz",
-  "Iraq":"iq",
-  "Panama":"pa",
-  "Haiti":"ht",
-  "Curaçao":"cw",
-  "Cape Verde":"cv",
-  "DR Congo":"cd",
-  "Tunisia":"tn",
-  "Uruguay":"uy",
-  "Costa Rica":"cr",
-  "Jordan":"jo",
-  "Honduras":"hn",
-  "New Zealand":"nz",
-  "Jamaica":"jm",
-  "El Salvador":"sv",
-  "South Africa":"za"
+  "Argentina":"ar","Brazil":"br","England":"gb-eng","France":"fr",
+  "Germany":"de","Spain":"es","Portugal":"pt","Netherlands":"nl",
+  "USA":"us","Mexico":"mx","Canada":"ca","Belgium":"be",
+  "Croatia":"hr","Switzerland":"ch","Denmark":"dk","Austria":"at",
+  "Serbia":"rs","Ukraine":"ua","Turkey":"tr","Poland":"pl",
+  "Morocco":"ma","Senegal":"sn","Nigeria":"ng","Egypt":"eg",
+  "Ghana":"gh","Cameroon":"cm","Algeria":"dz","Ivory Coast":"ci",
+  "Japan":"jp","South Korea":"kr","Iran":"ir","Saudi Arabia":"sa",
+  "Qatar":"qa","Australia":"au","Uzbekistan":"uz","Iraq":"iq",
+  "Panama":"pa","Haiti":"ht","Curaçao":"cw","Cape Verde":"cv",
+  "DR Congo":"cd","Tunisia":"tn","Uruguay":"uy","Costa Rica":"cr",
+  "Jordan":"jo","Honduras":"hn","New Zealand":"nz","Jamaica":"jm",
+  "El Salvador":"sv","South Africa":"za"
 };
 
 function flag(team){
@@ -159,39 +25,47 @@ function flag(team){
   return code ? `https://flagcdn.com/w40/${code}.png` : "";
 }
 
-/* CACHE (prevents repeated API calls) */
+/* CACHE */
 const concededCache = {};
+
+/* SAFE FETCH HELPER (prevents silent crashes) */
+async function safeFetch(url){
+  try {
+    const res = await fetch(url);
+    return await res.json();
+  } catch (err) {
+    console.error("Fetch failed:", url, err);
+    return { response: [] };
+  }
+}
 
 /* GET GOALS CONCEDED */
 async function getGoalsConceded(teamName){
+
+  if(!teamName || teamName === "N/A") return 0;
 
   if(concededCache[teamName] !== undefined){
     return concededCache[teamName];
   }
 
-  // 1. Get team ID via Worker
-  const response = await fetch(
-    `https://api-football.12heolh.workers.dev?endpoint=teams&search=${encodeURIComponent(teamName)}`
+  const teamData = await safeFetch(
+    `${API_BASE}?endpoint=teams&search=${encodeURIComponent(teamName)}`
   );
 
-  const teamData = await response.json();
-
   if(!teamData.response || !teamData.response.length){
+    concededCache[teamName] = 0;
     return 0;
   }
 
   const teamId = teamData.response[0].team.id;
 
-  // 2. Get fixtures via Worker
-  const fixturesResponse = await fetch(
-    `https://api-football.12heolh.workers.dev?endpoint=fixtures&team=${teamId}&season=${SEASON}`
+  const fixturesData = await safeFetch(
+    `${API_BASE}?endpoint=fixtures&team=${teamId}&season=${SEASON}`
   );
-
-  const fixturesData = await fixturesResponse.json();
 
   let conceded = 0;
 
-  fixturesData.response.forEach(match => {
+  (fixturesData.response || []).forEach(match => {
     if(match.teams.home.id === teamId){
       conceded += match.goals.away || 0;
     } else {
@@ -199,7 +73,6 @@ async function getGoalsConceded(teamName){
     }
   });
 
-  // cache result
   concededCache[teamName] = conceded;
   return conceded;
 }
@@ -213,8 +86,8 @@ async function buildTable(){
 
   for(const name of Object.keys(results)){
 
-    const team1 = results[name].team1;
-    const team2 = results[name].team2 || "N/A";
+    const team1 = results[name]?.team1 || "N/A";
+    const team2 = results[name]?.team2 || "N/A";
 
     const conceded1 = await getGoalsConceded(team1);
     const conceded2 = team2 !== "N/A"

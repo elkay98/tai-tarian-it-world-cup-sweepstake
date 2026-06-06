@@ -258,8 +258,8 @@ function startDraw(){
   const allTeams = [...data.teams.map(t => t.name)]
   .sort(() => Math.random() - 0.5);
 
-  const round1Teams = allTeams.slice(0,26);
-  const round2Teams = allTeams.slice(26,48);
+  const round1Teams = allTeams.slice(0,24);
+  const round2Teams = allTeams.slice(24,48);
 
   results = {};
   i = 0;
@@ -347,7 +347,7 @@ function updateProgress(done){
 
   const total = 48;
 
-  const displayStart = round === 1 ? 0 : 26;
+  const displayStart = round === 1 ? 0 : 24;
   const displayDone = displayStart + done;
 
   const remaining = total - displayDone;

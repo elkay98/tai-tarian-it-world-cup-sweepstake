@@ -40,28 +40,6 @@
       background: rgba(255,255,255,0.03);
     }
 
-    input {
-      width: 80px;
-      padding: 6px;
-      border-radius: 6px;
-      border: none;
-      text-align: center;
-    }
-
-    .controls {
-      margin-bottom: 20px;
-    }
-
-    button {
-      padding: 10px 16px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      background: #3b82f6;
-      color: white;
-      margin-right: 10px;
-    }
-
     .teamCell {
       display: flex;
       align-items: center;
@@ -82,6 +60,15 @@
       align-items: center;
       margin-bottom: 25px;
     }
+
+    button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      background: #3b82f6;
+      color: white;
+    }
   </style>
 </head>
 
@@ -92,13 +79,7 @@
   <button onclick="goBack()">Back To Draw</button>
 </div>
 
-<div class="controls">
-  <button onclick="saveGoals()">Save Goals</button>
-  <button onclick="resetGoals()">Reset Goals</button>
-</div>
-
 <table>
-
   <thead>
     <tr>
       <th>Person</th>
@@ -106,27 +87,22 @@
       <th>Goals Conceded</th>
       <th>Team 2</th>
       <th>Goals Conceded</th>
-</tr>
+    </tr>
   </thead>
 
   <tbody id="trackerBody"></tbody>
-
 </table>
 
 <script>
 
-const results = JSON.parse(
-  localStorage.getItem("sweepstakeResults")
-);
-
-let savedGoals = JSON.parse(localStorage.getItem("goalsConceded")) || {};
+const results = JSON.parse(localStorage.getItem("sweepstakeResults")) || {};
 
 const API_KEY = "801b4bdc2128ca227818ab361372734f";
 const SEASON = 2026;
 
-/* 🌍 FLAG MAP (ISO → FlagCDN code) */
+/* 🌍 FLAG MAP */
 const flags = {
-  "Argentina": "ar",
+  "Argentina":"ar",
   "Brazil":"br",
   "England":"gb-eng",
   "France":"fr",
@@ -180,110 +156,18 @@ const flags = {
 
 function flag(team){
   const code = flags[team];
-  return code
-    ? `https://flagcdn.com/w40/${code}.png`
-    : "";
+  return code ? `https://flagcdn.com/w40/${code}.png` : "";
 }
 
-const tbody = document.getElementById("trackerBody");
+/* CACHE (prevents repeated API calls) */
+const concededCache = {};
 
-Object.keys(results)
-  .sort()
-  .forEach(name => {
+/* GET GOALS CONCEDED */
+async function getGoalsConceded(teamName){
 
-    const t1 = savedGoals[name]?.team1 || 0;
-    const t2 = savedGoals[name]?.team2 || 0;
-
-    const team1 = results[name].team1;
-    const team2 = results[name].team2 || "N/A";
-
-    const row = document.createElement("tr");
-
-    row.innerHTML = `
-  <td>${name}</td>
-
-  <!-- TEAM 1 -->
-  <td>
-    <div class="teamCell">
-      <img class="flag" src="${flag(team1)}">
-      <span>${team1}</span>
-    </div>
-  </td>
-
-  <td>
-    <input type="number" id="t1-${name}" value="${t1}" min="0">
-  </td>
-
-  <!-- TEAM 2 -->
-  <td>
-    <div class="teamCell">
-      ${team2 === "N/A"
-        ? `<span>N/A</span>`
-        : `<img class="flag" src="${flag(team2)}"><span>${team2}</span>`
-      }
-    </div>
-  </td>
-
-  <td>
-    ${
-      team2 === "N/A"
-        ? "—"
-        : `<input type="number" id="t2-${name}" value="${t2}" min="0">`
-    }
-  </td>
-`;
-
-    tbody.appendChild(row);
-  });
-
-/* 💾 SAVE */
-function saveGoals(){
-
-  Object.keys(results).forEach(name => {
-
-    const t1 = parseInt(
-      document.getElementById("t1-" + name).value
-    ) || 0;
-
-    const t2 = parseInt(
-      document.getElementById("t2-" + name).value
-    ) || 0;
-
-    savedGoals[name] = {
-      team1: t1,
-      team2: t2
-    };
-
-  });
-
-  localStorage.setItem(
-    "goalsConceded",
-    JSON.stringify(savedGoals)
-  );
-
-  alert("Goals saved");
-}
-
-/* 🔁 RESET */
-function resetGoals(){
-
-  if(!confirm("Reset all goals?")) return;
-
-  Object.keys(results).forEach(name => {
-
-    document.getElementById("t1-" + name).value = 0;
-    document.getElementById("t2-" + name).value = 0;
-
-  });
-
-  savedGoals = {};
-
-  localStorage.removeItem("goalsConceded");
-
-  alert("Goals reset");
-}
-
-  async function getGoalsConceded(teamName){
+  if(concededCache[teamName] !== undefined){
+    return concededCache[teamName];
+  }
 
   const response = await fetch(
     `https://v3.football.api-sports.io/teams?search=${encodeURIComponent(teamName)}`,
@@ -316,19 +200,85 @@ function resetGoals(){
   let conceded = 0;
 
   fixturesData.response.forEach(match => {
-
     if(match.teams.home.id === teamId){
       conceded += match.goals.away || 0;
     } else {
       conceded += match.goals.home || 0;
     }
-
   });
 
+  concededCache[teamName] = conceded;
   return conceded;
 }
 
-/* 🔙 BACK */
+/* BUILD TABLE */
+const tbody = document.getElementById("trackerBody");
+
+async function buildTable(){
+
+  const enriched = [];
+
+  for(const name of Object.keys(results)){
+
+    const team1 = results[name].team1;
+    const team2 = results[name].team2 || "N/A";
+
+    const conceded1 = await getGoalsConceded(team1);
+    const conceded2 = team2 !== "N/A"
+      ? await getGoalsConceded(team2)
+      : 0;
+
+    enriched.push({
+      name,
+      team1,
+      team2,
+      conceded1,
+      conceded2
+    });
+  }
+
+  /* SORT BY TOTAL CONCEDED */
+  enriched.sort((a, b) =>
+    (b.conceded1 + b.conceded2) - (a.conceded1 + a.conceded2)
+  );
+
+  tbody.innerHTML = "";
+
+  enriched.forEach(row => {
+
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td>${row.name}</td>
+
+      <td>
+        <div class="teamCell">
+          <img class="flag" src="${flag(row.team1)}">
+          <span>${row.team1}</span>
+        </div>
+      </td>
+
+      <td>${row.conceded1}</td>
+
+      <td>
+        <div class="teamCell">
+          ${row.team2 === "N/A"
+            ? `<span>N/A</span>`
+            : `<img class="flag" src="${flag(row.team2)}"><span>${row.team2}</span>`
+          }
+        </div>
+      </td>
+
+      <td>${row.conceded2}</td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+}
+
+buildTable();
+
+/* BACK BUTTON */
 function goBack(){
   window.location.href = "index.html";
 }

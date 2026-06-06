@@ -121,6 +121,8 @@ const results = JSON.parse(
 
 let savedGoals = JSON.parse(
   localStorage.getItem("goalsConceded")
+  const API_KEY = "801b4bdc2128ca227818ab361372734f";
+  const SEASON = 2026;
 ) || {};
 
 /* 🌍 FLAG MAP (ISO → FlagCDN code) */
@@ -280,6 +282,51 @@ function resetGoals(){
   localStorage.removeItem("goalsConceded");
 
   alert("Goals reset");
+}
+
+  async function getGoalsConceded(teamName){
+
+  const response = await fetch(
+    `https://v3.football.api-sports.io/teams?search=${encodeURIComponent(teamName)}`,
+    {
+      headers: {
+        "x-apisports-key": API_KEY
+      }
+    }
+  );
+
+  const teamData = await response.json();
+
+  if(!teamData.response.length){
+    return 0;
+  }
+
+  const teamId = teamData.response[0].team.id;
+
+  const fixturesResponse = await fetch(
+    `https://v3.football.api-sports.io/fixtures?team=${teamId}&season=${SEASON}`,
+    {
+      headers: {
+        "x-apisports-key": API_KEY
+      }
+    }
+  );
+
+  const fixturesData = await fixturesResponse.json();
+
+  let conceded = 0;
+
+  fixturesData.response.forEach(match => {
+
+    if(match.teams.home.id === teamId){
+      conceded += match.goals.away || 0;
+    } else {
+      conceded += match.goals.home || 0;
+    }
+
+  });
+
+  return conceded;
 }
 
 /* 🔙 BACK */

@@ -220,10 +220,12 @@ function getFlagImg(team){
 }
   
 /* ---------- ADMIN ---------- */
-function adminLogin(){
+  const ADMIN_PASSWORD = 'TTWCSweep2026-!"£';
+
+  function adminLogin(){
   const pass = prompt("Enter admin password:");
 
-  if(pass === "TTWCSweep2026-!\"£"){
+  if(pass === ADMIN_PASSWORD){
     isAdmin = true;
     sessionStorage.setItem("admin","true");
     document.getElementById("adminControls").style.display = "block";
@@ -426,15 +428,6 @@ function go(){
 
   function showTrackerButton(){
 
-  document.getElementById("trackerLink").innerHTML = `
-    <button onclick="go()">
-      📊 Go to Live Tracker
-    </button>
-  `;
-}
-
-  function showTrackerButton(){
-
   if(localStorage.getItem("drawComplete") === "true"){
 
     document.getElementById("trackerLink").innerHTML = `
@@ -478,7 +471,7 @@ function reset(){
 
   const pass = prompt("Enter admin password to confirm reset:");
 
-  if(pass !== 'TTWCSweep2026-!"£'){
+  if(pass !== ADMIN_PASSWORD){
     alert("Reset cancelled");
     return;
   }

@@ -119,17 +119,14 @@ const results = JSON.parse(
   localStorage.getItem("sweepstakeResults")
 );
 
-let savedGoals = JSON.parse(
-  localStorage.getItem("goalsConceded")
-) || {};
+let savedGoals = JSON.parse(localStorage.getItem("goalsConceded")) || {};
 
 const API_KEY = "801b4bdc2128ca227818ab361372734f";
 const SEASON = 2026;
-) || {};
 
 /* 🌍 FLAG MAP (ISO → FlagCDN code) */
 const flags = {
-  "Argentina":"ar",
+  "Argentina": "ar",
   "Brazil":"br",
   "England":"gb-eng",
   "France":"fr",

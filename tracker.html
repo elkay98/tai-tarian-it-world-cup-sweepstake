@@ -1,9 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Live Sweepstake Tracker</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: white;
+      padding: 40px;
+    }
+
+    h1 {
+      margin-bottom: 30px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(255,255,255,0.05);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    th {
+      background: rgba(255,255,255,0.1);
+      padding: 14px;
+      text-align: left;
+    }
+
+    td {
+      padding: 14px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      vertical-align: middle;
+    }
+
+    tr:hover {
+      background: rgba(255,255,255,0.03);
+    }
+
+    .teamCell {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .flag {
+      width: 26px;
+      height: 18px;
+      border-radius: 3px;
+      object-fit: cover;
+      box-shadow: 0 0 2px rgba(0,0,0,0.4);
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+    }
+
+    button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      background: #3b82f6;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="topbar">
+  <h1>📊 Live World Cup Tracker</h1>
+  <button onclick="goBack()">Back To Draw</button>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Person</th>
+      <th>Team 1</th>
+      <th>Goals Conceded</th>
+      <th>Team 2</th>
+      <th>Goals Conceded</th>
+    </tr>
+  </thead>
+
+  <tbody id="trackerBody"></tbody>
+</table>
+
+<script>
+
 const results = JSON.parse(localStorage.getItem("sweepstakeResults")) || {};
 
 const API_BASE = "https://api-football.12heolh.workers.dev";
 const SEASON = 2026;
 
-/* 🌍 FLAG MAP */
+/* 🌍 FLAGS */
 const flags = {
   "Argentina":"ar","Brazil":"br","England":"gb-eng","France":"fr",
   "Germany":"de","Spain":"es","Portugal":"pt","Netherlands":"nl",
@@ -28,18 +125,18 @@ function flag(team){
 /* CACHE */
 const concededCache = {};
 
-/* SAFE FETCH HELPER (prevents silent crashes) */
+/* SAFE FETCH */
 async function safeFetch(url){
   try {
     const res = await fetch(url);
     return await res.json();
-  } catch (err) {
-    console.error("Fetch failed:", url, err);
+  } catch (e) {
+    console.error("Fetch failed:", url, e);
     return { response: [] };
   }
 }
 
-/* GET GOALS CONCEDED */
+/* GOALS CONCEDED */
 async function getGoalsConceded(teamName){
 
   if(!teamName || teamName === "N/A") return 0;
@@ -52,7 +149,7 @@ async function getGoalsConceded(teamName){
     `${API_BASE}?endpoint=teams&search=${encodeURIComponent(teamName)}`
   );
 
-  if(!teamData.response || !teamData.response.length){
+  if(!teamData.response?.length){
     concededCache[teamName] = 0;
     return 0;
   }
@@ -103,7 +200,6 @@ async function buildTable(){
     });
   }
 
-  /* SORT BY TOTAL CONCEDED */
   enriched.sort((a, b) =>
     (b.conceded1 + b.conceded2) - (a.conceded1 + a.conceded2)
   );
@@ -144,7 +240,11 @@ async function buildTable(){
 
 buildTable();
 
-/* BACK BUTTON */
 function goBack(){
   window.location.href = "index.html";
 }
+
+</script>
+
+</body>
+</html>

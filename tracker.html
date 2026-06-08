@@ -149,6 +149,8 @@ async function getGoalsConceded(teamName){
     `${API_BASE}?endpoint=teams&search=${encodeURIComponent(teamName)}`
   );
 
+  console.log("TEAM DATA", teamName, teamData);
+  
   if(!teamData.response?.length){
     concededCache[teamName] = 0;
     return 0;

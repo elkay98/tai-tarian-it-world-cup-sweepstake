@@ -136,46 +136,6 @@ async function safeFetch(url){
   }
 }
 
-/* GOALS CONCEDED */
-async function getGoalsConceded(teamName){
-
-  if(!teamName || teamName === "N/A") return 0;
-
-  if(concededCache[teamName] !== undefined){
-    return concededCache[teamName];
-  }
-
-  const teamData = await safeFetch(
-    `${API_BASE}?endpoint=teams&search=${encodeURIComponent(teamName)}`
-  );
-
-  console.log("TEAM DATA", teamName, teamData);
-  
-  if(!teamData.response?.length){
-    concededCache[teamName] = 0;
-    return 0;
-  }
-
-  const teamId = teamData.response[0].team.id;
-
-  const fixturesData = await safeFetch(
-    `${API_BASE}?endpoint=fixtures&team=${teamId}&season=${SEASON}`
-  );
-
-  let conceded = 0;
-
-  (fixturesData.response || []).forEach(match => {
-    if(match.teams.home.id === teamId){
-      conceded += match.goals.away || 0;
-    } else {
-      conceded += match.goals.home || 0;
-    }
-  });
-
-  concededCache[teamName] = conceded;
-  return conceded;
-}
-
 /* BUILD TABLE */
 const tbody = document.getElementById("trackerBody");
 

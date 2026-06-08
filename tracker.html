@@ -179,6 +179,31 @@ async function getGoalsConceded(teamName){
 /* BUILD TABLE */
 const tbody = document.getElementById("trackerBody");
 
+async function getAllGoalsConceded(){
+
+  const fixturesData = await safeFetch(
+    `${API_BASE}?endpoint=fixtures&season=${SEASON}`
+  );
+
+  const conceded = {};
+
+  (fixturesData.response || []).forEach(match => {
+
+    const home = match.teams.home.name;
+    const away = match.teams.away.name;
+
+    const homeGoals = match.goals.home || 0;
+    const awayGoals = match.goals.away || 0;
+
+    conceded[home] = (conceded[home] || 0) + awayGoals;
+    conceded[away] = (conceded[away] || 0) + homeGoals;
+
+  });
+
+  return conceded;
+}
+
+  
 async function buildTable(){
 
  const allConceded = await getAllGoalsConceded();

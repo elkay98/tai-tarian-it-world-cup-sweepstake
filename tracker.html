@@ -181,17 +181,17 @@ const tbody = document.getElementById("trackerBody");
 
 async function buildTable(){
 
-  const enriched = [];
+ onst allConceded = await getAllGoalsConceded();
 
-  for(const name of Object.keys(results)){
+const enriched = [];
 
-    const team1 = results[name]?.team1 || "N/A";
-    const team2 = results[name]?.team2 || "N/A";
+for(const name of Object.keys(results)){
 
-    const conceded1 = await getGoalsConceded(team1);
-    const conceded2 = team2 !== "N/A"
-      ? await getGoalsConceded(team2)
-      : 0;
+  const team1 = results[name]?.team1 || "N/A";
+  const team2 = results[name]?.team2 || "N/A";
+
+  const conceded1 = allConceded[team1] || 0;
+  const conceded2 = allConceded[team2] || 0;
 
     enriched.push({
       name,

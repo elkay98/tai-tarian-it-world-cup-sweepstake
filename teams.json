@@ -37,8 +37,6 @@
     { "name": "Netherlands", "tier": "elite" },
     { "name": "Belgium", "tier": "elite" },
     { "name": "Croatia", "tier": "elite" },
-    
-    
     { "name": "Uruguay", "tier": "mid" },
     { "name": "Switzerland", "tier": "mid" },
     { "name": "Czechia", "tier": "mid" },
@@ -66,10 +64,7 @@
     { "name": "Qatar", "tier": "mid" },
     { "name": "Australia", "tier": "mid" },
     { "name": "Jordan", "tier": "mid" },
-    { "name": "Costa Rica", "tier": "mid" },
-    { "name": "Honduras", "tier": "mid" },
     { "name": "Colombia", "tier": "mid" },
-    
     { "name": "New Zealand", "tier": "low" },
     { "name": "Paraguay", "tier": "low" },
     { "name": "Uzbekistan", "tier": "low" },

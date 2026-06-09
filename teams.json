@@ -35,9 +35,10 @@
     { "name": "Spain", "tier": "elite" },
     { "name": "Portugal", "tier": "elite" },
     { "name": "Netherlands", "tier": "elite" },
-
-    { "name": "Belgium", "tier": "mid" },
-    { "name": "Croatia", "tier": "mid" },
+    { "name": "Belgium", "tier": "elite" },
+    { "name": "Croatia", "tier": "elite" },
+    
+    
     { "name": "Uruguay", "tier": "mid" },
     { "name": "Switzerland", "tier": "mid" },
     { "name": "Czechia", "tier": "mid" },
@@ -68,9 +69,9 @@
     { "name": "Costa Rica", "tier": "mid" },
     { "name": "Honduras", "tier": "mid" },
     { "name": "Colombia", "tier": "mid" },
-    { "name": "Paraguay", "tier": "mid" },
-    { "name": "New Zealand", "tier": "mid" },
     
+    { "name": "New Zealand", "tier": "low" },
+    { "name": "Paraguay", "tier": "low" },
     { "name": "Uzbekistan", "tier": "low" },
     { "name": "Iraq", "tier": "low" },
     { "name": "Panama", "tier": "low" },

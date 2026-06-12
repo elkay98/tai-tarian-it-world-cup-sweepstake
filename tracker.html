@@ -261,22 +261,30 @@ async function buildTable(){
 
 if (enriched.length > 0) {
 
-  // find highest total conceded
   const topScore = enriched[0].conceded1 + enriched[0].conceded2;
 
-  // get ALL tied leaders
   const leaders = enriched.filter(p =>
     (p.conceded1 + p.conceded2) === topScore
   );
 
   const leaderText = leaders.map(l => {
+
     const total = l.conceded1 + l.conceded2;
-    return `${l.name} — ${l.team1} (${total})`;
+
+    const teamFlags = [
+      flag(l.team1),
+      flag(l.team2)
+    ]
+      .filter(Boolean)
+      .map(f => `<img src="${f}" style="width:20px;height:14px;border-radius:3px;margin:0 4px;vertical-align:middle;">`)
+      .join("");
+
+    return `${l.name} — ${teamFlags} ${l.team1}`;
   }).join(" + ");
 
   leaderBanner.style.display = "block";
   leaderBanner.innerHTML =
-    `🏆 Current Leader(s): ${leaderText} goals conceded`;
+    `🏆 Current Leader(s): ${leaderText} — ${topScore} goals conceded`;
 }
 
   tbody.innerHTML = "";

@@ -98,10 +98,22 @@
 const results = await fetch("draw.json")
   .then(r => r.json());
 
-  console.log("DRAW LOADED", results);
+console.log("DRAW LOADED", results);
 
 const API_BASE = "https://api-football.12heolh.workers.dev";
-const SEASON = 2026;
+
+/* ================================
+   🔧 NAME NORMALISATION FIX
+================================ */
+const nameMap = {
+  "Czech Republic": "Czechia",
+  "United States": "USA",
+  "Bosnia and Herzegovina": "Bosnia & Herzegovina"
+};
+
+function normalise(name) {
+  return nameMap[name] || name;
+}
 
 /* 🌍 FLAGS */
 const flags = {
@@ -155,7 +167,7 @@ const flags = {
   "Cape Verde": "cv",
   "DR Congo": "cd",
   "Tunisia": "tn"
-}
+};
 
 function flag(team){
   const code = flags[team];
@@ -169,7 +181,7 @@ async function safeFetch(url){
     return await res.json();
   } catch (e) {
     console.error("Fetch failed:", url, e);
-    return { response: [] };
+    return { games: [] };
   }
 }
 
@@ -182,14 +194,14 @@ async function getAllGoalsConceded(){
     "https://worldcup26.ir/get/games"
   );
 
-  console.log("FIXTURES RESPONSE (NEW SOURCE)", fixturesData);
+  console.log("FIXTURES RESPONSE", fixturesData);
 
   const conceded = {};
 
   (fixturesData.games || []).forEach(match => {
 
-    const home = match.home_team_name_en;
-    const away = match.away_team_name_en;
+    const home = normalise(match.home_team_name_en);
+    const away = normalise(match.away_team_name_en);
 
     const homeGoals = Number(match.home_score) || 0;
     const awayGoals = Number(match.away_score) || 0;
@@ -204,20 +216,19 @@ async function getAllGoalsConceded(){
   return conceded;
 }
 
-  
 async function buildTable(){
 
- const allConceded = await getAllGoalsConceded();
+  const allConceded = await getAllGoalsConceded();
 
-const enriched = [];
+  const enriched = [];
 
-for(const name of Object.keys(results)){
+  for(const name of Object.keys(results)){
 
-  const team1 = results[name]?.team1 || "N/A";
-  const team2 = results[name]?.team2 || "N/A";
+    const team1 = normalise(results[name]?.team1 || "N/A");
+    const team2 = normalise(results[name]?.team2 || "N/A");
 
-  const conceded1 = allConceded[team1] || 0;
-  const conceded2 = allConceded[team2] || 0;
+    const conceded1 = allConceded[team1] || 0;
+    const conceded2 = allConceded[team2] || 0;
 
     enriched.push({
       name,

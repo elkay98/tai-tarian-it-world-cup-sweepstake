@@ -69,28 +69,34 @@
       background: #3b82f6;
       color: white;
     }
+
+    /* 🏆 Leader banner */
+    #leaderBanner {
+      background: rgba(255,255,255,0.08);
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 25px;
+      font-size: 16px;
+      line-height: 1.4;
+    }
+
+    #leaderBanner strong {
+      font-size: 18px;
+    }
   </style>
 </head>
 
 <body>
 
 <div class="topbar">
-
-<div id="leaderBanner" style="
-  margin-bottom: 20px;
-  padding: 14px 18px;
-  border-radius: 12px;
-  background: linear-gradient(90deg, #f59e0b, #ef4444);
-  color: white;
-  font-weight: bold;
-  font-size: 16px;
-  display: none;
-">
-  🏆 Current Leader: Loading...
-</div>
-  
   <h1>📊 Live World Cup Tracker</h1>
   <button onclick="goBack()">Back To Draw</button>
+</div>
+
+<!-- 🏆 Leader Banner -->
+<div id="leaderBanner">
+  🏆 Current Leader:<br>
+  Loading...
 </div>
 
 <table>
@@ -112,22 +118,8 @@
 const results = await fetch("draw.json")
   .then(r => r.json());
 
-console.log("DRAW LOADED", results);
-
 const API_BASE = "https://api-football.12heolh.workers.dev";
-
-/* ================================
-   🔧 NAME NORMALISATION FIX
-================================ */
-const nameMap = {
-  "Czech Republic": "Czechia",
-  "United States": "USA",
-  "Bosnia and Herzegovina": "Bosnia & Herzegovina"
-};
-
-function normalise(name) {
-  return nameMap[name] || name;
-}
+const SEASON = 2026;
 
 /* 🌍 FLAGS */
 const flags = {
@@ -139,7 +131,6 @@ const flags = {
   "Spain": "es",
   "Portugal": "pt",
   "Netherlands": "nl",
-
   "Belgium": "be",
   "Croatia": "hr",
   "Uruguay": "uy",
@@ -172,7 +163,6 @@ const flags = {
   "Colombia": "co",
   "Paraguay": "py",
   "New Zealand": "nz",
-
   "Uzbekistan": "uz",
   "Iraq": "iq",
   "Panama": "pa",
@@ -188,19 +178,18 @@ function flag(team){
   return code ? `https://flagcdn.com/w40/${code}.png` : "";
 }
 
-/* SAFE FETCH */
 async function safeFetch(url){
   try {
     const res = await fetch(url);
     return await res.json();
   } catch (e) {
     console.error("Fetch failed:", url, e);
-    return { games: [] };
+    return { response: [] };
   }
 }
 
-/* BUILD TABLE */
 const tbody = document.getElementById("trackerBody");
+const banner = document.getElementById("leaderBanner");
 
 async function getAllGoalsConceded(){
 
@@ -208,14 +197,12 @@ async function getAllGoalsConceded(){
     "https://worldcup26.ir/get/games"
   );
 
-  console.log("FIXTURES RESPONSE", fixturesData);
-
   const conceded = {};
 
   (fixturesData.games || []).forEach(match => {
 
-    const home = normalise(match.home_team_name_en);
-    const away = normalise(match.away_team_name_en);
+    const home = match.home_team_name_en;
+    const away = match.away_team_name_en;
 
     const homeGoals = Number(match.home_score) || 0;
     const awayGoals = Number(match.away_score) || 0;
@@ -238,8 +225,8 @@ async function buildTable(){
 
   for(const name of Object.keys(results)){
 
-    const team1 = normalise(results[name]?.team1 || "N/A");
-    const team2 = normalise(results[name]?.team2 || "N/A");
+    const team1 = results[name]?.team1 || "N/A";
+    const team2 = results[name]?.team2 || "N/A";
 
     const conceded1 = allConceded[team1] || 0;
     const conceded2 = allConceded[team2] || 0;
@@ -249,29 +236,26 @@ async function buildTable(){
       team1,
       team2,
       conceded1,
-      conceded2
+      conceded2,
+      total: conceded1 + conceded2
     });
   }
 
-  enriched.sort((a, b) =>
-    (b.conceded1 + b.conceded2) - (a.conceded1 + a.conceded2)
-  );
+  enriched.sort((a, b) => b.total - a.total);
 
+  /* 🏆 LEADER BANNER */
   const leader = enriched[0];
 
-const leaderBanner = document.getElementById("leaderBanner");
+  const leaderFlag = flag(leader.team1);
 
-if (leader) {
-  const total = leader.conceded1 + leader.conceded2;
-
-  let displayTeam = leader.team1;
-
-  // If you want "main team" logic instead, we keep team1 as default
-
-  leaderBanner.style.display = "block";
-  leaderBanner.innerHTML =
-    `🏆 Current Leader: ${leader.name} — ${displayTeam} — ${total} goals conceded`;
-}
+  banner.innerHTML = `
+    🏆 Current Leader:<br>
+    <strong>
+      ${leader.name}, with ${leader.team1}
+      ${leaderFlag ? `<img class="flag" src="${leaderFlag}">` : ""}
+      who have conceded ${leader.total} goals!
+    </strong>
+  `;
 
   tbody.innerHTML = "";
 

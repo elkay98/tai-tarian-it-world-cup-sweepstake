@@ -258,19 +258,24 @@ async function buildTable(){
   );
 
   const leader = enriched[0];
-
 const leaderBanner = document.getElementById("leaderBanner");
 
 if (leader) {
   const total = leader.conceded1 + leader.conceded2;
 
-  let displayTeam = leader.team1;
-
-  // If you want "main team" logic instead, we keep team1 as default
+  const flagCode = flags[leader.team1];
+  const flagImg = flagCode
+    ? `<img src="https://flagcdn.com/w40/${flagCode}.png" style="width:24px;height:16px;border-radius:3px;vertical-align:middle;margin:0 6px;">`
+    : "";
 
   leaderBanner.style.display = "block";
-  leaderBanner.innerHTML =
-    `🏆 Current Leader: ${leader.name} — ${displayTeam} — ${total} goals conceded`;
+  leaderBanner.innerHTML = `
+    🏆 Current Leader:
+    <br>
+    <span style="display:block;margin-top:6px;">
+      ${leader.name}, with ${leader.team1} ${flagImg}, who have conceded ${total} goals!
+    </span>
+  `;
 }
 
   tbody.innerHTML = "";

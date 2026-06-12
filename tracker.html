@@ -179,14 +179,39 @@ const tbody = document.getElementById("trackerBody");
 async function getAllGoalsConceded(){
 
   const fixturesData = await safeFetch(
-    `${API_BASE}?endpoint=fixtures&season=${SEASON}`
+    "https://worldcup26.ir/get/games"
   );
+
+  console.log("FIXTURES RESPONSE (NEW SOURCE)", fixturesData);
+
+  const conceded = {};
+
+  (fixturesData.games || []).forEach(match => {
+
+    const home = match.home_team_name_en;
+    const away = match.away_team_name_en;
+
+    const homeGoals = Number(match.home_score) || 0;
+    const awayGoals = Number(match.away_score) || 0;
+
+    // initialise
+    if (!conceded[home]) conceded[home] = 0;
+    if (!conceded[away]) conceded[away] = 0;
+
+    // goals conceded
+    conceded[home] += awayGoals;
+    conceded[away] += homeGoals;
+
+  });
+
+  return conceded;
+}
 
 console.log("FIXTURES RESPONSE", fixturesData);
   
   const conceded = {};
 
-  (fixturesData.response || []).forEach(match => {
+  (fixturesData.games || []).forEach(match => {
 
     const home = match.teams.home.name;
     const away = match.teams.away.name;

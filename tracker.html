@@ -257,25 +257,26 @@ async function buildTable(){
     (b.conceded1 + b.conceded2) - (a.conceded1 + a.conceded2)
   );
 
-  const leader = enriched[0];
-const leaderBanner = document.getElementById("leaderBanner");
+  const leaderBanner = document.getElementById("leaderBanner");
 
-if (leader) {
-  const total = leader.conceded1 + leader.conceded2;
+if (enriched.length > 0) {
 
-  const flagCode = flags[leader.team1];
-  const flagImg = flagCode
-    ? `<img src="https://flagcdn.com/w40/${flagCode}.png" style="width:24px;height:16px;border-radius:3px;vertical-align:middle;margin:0 6px;">`
-    : "";
+  // find highest total conceded
+  const topScore = enriched[0].conceded1 + enriched[0].conceded2;
+
+  // get ALL tied leaders
+  const leaders = enriched.filter(p =>
+    (p.conceded1 + p.conceded2) === topScore
+  );
+
+  const leaderText = leaders.map(l => {
+    const total = l.conceded1 + l.conceded2;
+    return `${l.name} — ${l.team1} (${total})`;
+  }).join(" + ");
 
   leaderBanner.style.display = "block";
-  leaderBanner.innerHTML = `
-    🏆 Current Leader:
-    <br>
-    <span style="display:block;margin-top:6px;">
-      ${leader.name}, with ${leader.team1} ${flagImg}, who have conceded ${total} goals!
-    </span>
-  `;
+  leaderBanner.innerHTML =
+    `🏆 Current Leader(s): ${leaderText} goals conceded`;
 }
 
   tbody.innerHTML = "";

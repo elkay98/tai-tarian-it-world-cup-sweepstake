@@ -271,15 +271,15 @@ if (enriched.length > 0) {
 
     const total = l.conceded1 + l.conceded2;
 
-    const teamFlags = [
-      flag(l.team1),
-      flag(l.team2)
-    ]
-      .filter(Boolean)
-      .map(f => `<img src="${f}" style="width:20px;height:14px;border-radius:3px;margin:0 4px;vertical-align:middle;">`)
-      .join("");
+    const leaderTeam = (l.conceded1 >= l.conceded2) ? l.team1 : l.team2;
 
-    return `${l.name} — ${teamFlags} ${l.team1}`;
+const teamFlag = flag(leaderTeam);
+
+const flagHTML = teamFlag
+  ? `<img src="${teamFlag}" style="width:20px;height:14px;border-radius:3px;margin:0 6px;vertical-align:middle;">`
+  : "";
+
+   return `${l.name} — ${flagHTML} ${leaderTeam}`;
   }).join(" + ");
 
   leaderBanner.style.display = "block";

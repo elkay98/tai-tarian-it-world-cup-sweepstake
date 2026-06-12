@@ -75,6 +75,20 @@
 <body>
 
 <div class="topbar">
+
+<div id="leaderBanner" style="
+  margin-bottom: 20px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #f59e0b, #ef4444);
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  display: none;
+">
+  🏆 Current Leader: Loading...
+</div>
+  
   <h1>📊 Live World Cup Tracker</h1>
   <button onclick="goBack()">Back To Draw</button>
 </div>
@@ -242,6 +256,22 @@ async function buildTable(){
   enriched.sort((a, b) =>
     (b.conceded1 + b.conceded2) - (a.conceded1 + a.conceded2)
   );
+
+  const leader = enriched[0];
+
+const leaderBanner = document.getElementById("leaderBanner");
+
+if (leader) {
+  const total = leader.conceded1 + leader.conceded2;
+
+  let displayTeam = leader.team1;
+
+  // If you want "main team" logic instead, we keep team1 as default
+
+  leaderBanner.style.display = "block";
+  leaderBanner.innerHTML =
+    `🏆 Current Leader: ${leader.name} — ${displayTeam} — ${total} goals conceded`;
+}
 
   tbody.innerHTML = "";
 
